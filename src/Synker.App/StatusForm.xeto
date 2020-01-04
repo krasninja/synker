@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Form
+  xmlns="http://schema.picoe.ca/eto.forms"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  Title="Status"
+  ClientSize="720, 480"
+  Padding="5"
+  Location="200, 200">
+
+  <TableLayout>
+    <TableRow ScaleHeight="True">
+      <GridView
+        ID="Profiles"
+        GridLines="Vertical"
+        AllowColumnReordering="True"
+        AllowMultipleSelection="True"
+        DataStore="{Binding Profiles}"
+      >
+        <GridColumn ID="Id" AutoSize="False" HeaderText="Identifier" Width="170" Resizable="False" />
+        <GridColumn ID="Name" AutoSize="False" HeaderText="Name" Width="350" Resizable="True" />
+        <GridColumn ID="LastLocalUpdate" AutoSize="False" HeaderText="Last Local Update" Width="130" Resizable="False" Sortable="True" />
+      </GridView>
+    </TableRow>
+  </TableLayout>
+</Form>

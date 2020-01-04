@@ -1,0 +1,14 @@
+id: conemu
+name: ConEmu
+description: Handy Windows terminal
+targets:
+
+  - type: ensure-files
+    win:files:
+      - ${folder:ApplicationData}\ConEmu.xml
+
+  - type: files
+    id: settings
+    win:base-path: ${folder:ApplicationData}\
+    files:
+      - "~/ConEmu.xml"

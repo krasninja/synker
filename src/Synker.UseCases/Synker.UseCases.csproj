@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Synker.Core\Synker.Core.csproj" />
+      <ProjectReference Include="..\Synker.UseCases.Common\Synker.UseCases.Common.csproj" />
+    </ItemGroup>
+
+</Project>
