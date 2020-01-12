@@ -1,7 +1,7 @@
 using Synker.Core.Internal;
 using Xunit;
 
-namespace Synker.Tests
+namespace Synker.Core.Tests
 {
     /// <summary>
     /// Template replacer tests.

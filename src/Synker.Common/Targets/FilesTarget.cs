@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,7 +23,7 @@ namespace Synker.Common.Targets
         private const string Key_Name = "name";
 
         /// <summary>
-        /// Base path to settings, may be different on different operation systems.
+        /// Base fullName to settings, may be different on different operation systems.
         /// </summary>
         [Required]
         public string BasePath { get; set; } = string.Empty;
@@ -52,7 +53,7 @@ namespace Synker.Common.Targets
         {
             if (!string.IsNullOrEmpty(BasePath) && !Path.IsPathRooted(BasePath))
             {
-                throw new SettingsSyncException($"Base path \"{BasePath}\" is not rooted.");
+                throw new SettingsSyncException($"Base fullName \"{BasePath}\" is not rooted.");
             }
         }
 
@@ -84,8 +85,8 @@ namespace Synker.Common.Targets
 
                     // Export.
                     result.Stream = File.OpenRead(file);
-                    result.Metadata[Key_Name] = NormalizeFileName(
-                        GetRelativePath(BasePath, file)
+                    result.Metadata[Key_Name] = NormalizePath(
+                        GetRelativeFilePath(BasePath, file, IsFileSystemCaseInsensitive())
                     );
                     result.Metadata[Key_LastUpdate] = File.GetLastWriteTimeUtc(file).Ticks.ToString();
                     logger.LogInformation("Export file {fileName}.", result.Metadata[Key_Name]);
@@ -95,18 +96,97 @@ namespace Synker.Common.Targets
         }
 
         /// <remarks>
-        /// Source: https://stackoverflow.com/questions/51179331/is-it-possible-to-use-path-getrelativepath-net-core2-in-winforms-proj-targeti .
+        /// Source: https://stackoverflow.com/questions/51179331/is-it-possible-to-use-fullName-getrelativepath-net-core2-in-winforms-proj-targeti .
         /// </remarks>
-        private static string GetRelativePath(string relativeTo, string path)
+        internal static string GetRelativeFilePath(string relativeTo, string fullName, bool caseInsensitive)
         {
-            var uri = new Uri(relativeTo);
-            var rel = Uri.UnescapeDataString(uri.MakeRelativeUri(new Uri(path)).ToString())
-                .Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
-            if (rel.Contains(Path.DirectorySeparatorChar.ToString()) == false)
+            if (relativeTo.Length < 1)
             {
-                rel = $".{ Path.DirectorySeparatorChar }{ rel }";
+                throw new ArgumentException("Incorrect relative path.");
             }
-            return rel;
+            if (fullName.Length < 1 || fullName.Length <= relativeTo.Length)
+            {
+                throw new ArgumentException("Incorrect full file name.");
+            }
+
+            int startRelativeIndex = -1;
+            char separator = fullName.Contains('\\') ? '\\' : '/';
+            for (int i = 0; i < relativeTo.Length; i++)
+            {
+                if (fullName.Length <= i)
+                {
+                    throw new SettingsSyncException(
+                        $"Incorrect full file name {fullName} for relative path {relativeTo}.");
+                }
+
+                if (relativeTo[i] == '\\' || relativeTo[i] == '/')
+                {
+                     continue;
+                }
+
+                if ((caseInsensitive && char.ToUpper(relativeTo[i]) != char.ToUpper(fullName[i])) ||
+                     (!caseInsensitive && relativeTo[i] != fullName[i]))
+                {
+                    if (i > 0 && (relativeTo[i - 1] == '\\' || relativeTo[i - 1] == '/'))
+                    {
+                        startRelativeIndex = i;
+                        break;
+                    }
+                    throw new SettingsSyncException($"Incorrect relative path {relativeTo}.");
+                }
+            }
+
+            if (relativeTo.EndsWith("\\") || relativeTo.EndsWith("/"))
+            {
+                if (fullName[relativeTo.Length - 1] == '\\' || fullName[relativeTo.Length - 1] == '/')
+                {
+                    startRelativeIndex = relativeTo.Length;
+                }
+            }
+            else
+            {
+                if (fullName[relativeTo.Length] == '\\' || fullName[relativeTo.Length] == '/')
+                {
+                    startRelativeIndex = relativeTo.Length;
+                }
+            }
+
+            if (startRelativeIndex < 0)
+            {
+                throw new SettingsSyncException(
+                    $"Cannot get relative file name for {fullName} and relative path {relativeTo}.");
+            }
+
+            var relativeFilePath = fullName.Substring(startRelativeIndex);
+            if (relativeFilePath.StartsWith("/") || relativeFilePath.StartsWith("\\"))
+            {
+                relativeFilePath = "." + relativeFilePath;
+            }
+            else
+            {
+                relativeFilePath = "." + separator + relativeFilePath;
+            }
+            return relativeFilePath;
+        }
+
+        // Source: https://github.com/gapotchenko/Gapotchenko.FX/blob/master/Source/Gapotchenko.FX.IO/FileSystem.cs#L51
+        private static bool IsFileSystemCaseInsensitive()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
+                RuntimeInformation.IsOSPlatform(OSPlatform.OSX))  // HFS+ (the Mac file-system) is usually configured to be case insensitive.
+            {
+                return true;
+            }
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                return false;
+            }
+            if (Environment.OSVersion.Platform == PlatformID.Unix)
+            {
+                return false;
+            }
+            // A sane default.
+            return true;
         }
 
         /// <inheritdoc />
@@ -179,7 +259,7 @@ namespace Synker.Common.Targets
                 {
                     if (string.IsNullOrEmpty(BasePath))
                     {
-                        throw new SettingsSyncException($"Relative file {file} specified but no base path.");
+                        throw new SettingsSyncException($"Relative file {file} specified but no base fullName.");
                     }
                     resolvedPath = Path.Combine(BasePath, file.Substring(2));
                 }
@@ -225,7 +305,7 @@ namespace Synker.Common.Targets
 
         private bool MatchAnyRegexInList(IList<Regex> regexList, string file)
         {
-            var normalizedName = NormalizeFileName(file);
+            var normalizedName = NormalizePath(file);
             foreach (Regex regex in regexList)
             {
                 if (regex.IsMatch(normalizedName))
@@ -247,7 +327,7 @@ namespace Synker.Common.Targets
             return excludeRegexps;
         }
 
-        private static string NormalizeFileName(string file) => file.Replace('\\', '/');
+        private static string NormalizePath(string path) => path.Replace('\\', '/');
 
         #region ITargetWithMonitor
 
@@ -291,7 +371,6 @@ namespace Synker.Common.Targets
         }
 
         private HashSet<string> allSyncFiles = new HashSet<string>();
-        private DateTime lastSettingsUpdate = DateTime.Now;
 
         private void WatcherEvent(object sender, FileSystemEventArgs e)
         {
