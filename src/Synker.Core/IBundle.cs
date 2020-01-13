@@ -40,10 +40,8 @@ namespace Synker.Core
         /// Get settings related to target.
         /// </summary>
         /// <param name="targetId">Target identifier.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>Settings enumeration.</returns>
-        IAsyncEnumerable<Setting> GetSettingsAsync(string targetId,
-            CancellationToken cancellationToken = default);
+        IAsyncEnumerable<Setting> GetSettingsAsync(string targetId);
 
         /// <summary>
         /// Get metadata. If targetId is null or empty metadata will be related to bundle.

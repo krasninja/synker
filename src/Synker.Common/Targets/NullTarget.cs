@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Dasync.Collections;
 using Synker.Core;
 
 namespace Synker.Common.Targets
@@ -13,14 +12,9 @@ namespace Synker.Common.Targets
     public class NullTarget : TargetBase
     {
         /// <inheritdoc />
-        public override IAsyncEnumerable<Setting> ExportAsync(SyncContext syncContext,
-            CancellationToken cancellationToken = default)
+        public override async IAsyncEnumerable<Setting> ExportAsync(SyncContext syncContext)
         {
-            return new AsyncEnumerable<Setting>(yield =>
-            {
-                yield.Break();
-                return Task.CompletedTask;
-            });
+            yield break;
         }
 
         /// <inheritdoc />

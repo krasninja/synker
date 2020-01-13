@@ -127,7 +127,6 @@ build/content
 # web
 bower_components
 node_modules
-bundles
 *.sqlite
 
 *.zip

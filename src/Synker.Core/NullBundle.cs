@@ -28,9 +28,9 @@ namespace Synker.Core
         }
 
         /// <inheritdoc />
-        public IAsyncEnumerable<Setting> GetSettingsAsync(string targetId, CancellationToken cancellationToken = default)
+        public async IAsyncEnumerable<Setting> GetSettingsAsync(string targetId)
         {
-            return null;
+            yield return null;
         }
 
         /// <inheritdoc />

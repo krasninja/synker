@@ -7,7 +7,6 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Dasync.Collections;
 using ICSharpCode.SharpZipLib.Core;
 using Microsoft.Extensions.Logging;
 using Synker.Core;
@@ -58,41 +57,32 @@ namespace Synker.Common.Targets
         }
 
         /// <inheritdoc />
-        public override IAsyncEnumerable<Setting> ExportAsync(
-            SyncContext syncContext,
-            CancellationToken cancellationToken = default)
+        public override async IAsyncEnumerable<Setting> ExportAsync(SyncContext syncContext)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            return new AsyncEnumerable<Setting>(async yield =>
+            // Export file by file.
+            foreach (var file in GetAllFiles())
             {
-                // Export file by file.
-                foreach (var file in GetAllFiles())
+                // Does file exists.
+                var result = new Setting();
+                if (!File.Exists(file))
                 {
-                    yield.CancellationToken.ThrowIfCancellationRequested();
-
-                    // Does file exists.
-                    var result = new Setting();
-                    if (!File.Exists(file))
+                    if (SkipIfNotExists)
                     {
-                        if (SkipIfNotExists)
-                        {
-                            continue;
-                        }
-
-                        throw new TargetException($"Cannot find file {file}.");
+                        continue;
                     }
 
-                    // Export.
-                    result.Stream = File.OpenRead(file);
-                    result.Metadata[Key_Name] = NormalizePath(
-                        GetRelativeFilePath(BasePath, file, IsFileSystemCaseInsensitive())
-                    );
-                    result.Metadata[Key_LastUpdate] = File.GetLastWriteTimeUtc(file).Ticks.ToString();
-                    logger.LogInformation("Export file {fileName}.", result.Metadata[Key_Name]);
-                    await yield.ReturnAsync(result);
+                    throw new TargetException($"Cannot find file {file}.");
                 }
-            });
+
+                // Export.
+                result.Stream = File.OpenRead(file);
+                result.Metadata[Key_Name] = NormalizePath(
+                    GetRelativeFilePath(BasePath, file, IsFileSystemCaseInsensitive())
+                );
+                result.Metadata[Key_LastUpdate] = File.GetLastWriteTimeUtc(file).Ticks.ToString();
+                logger.LogInformation("Export file {fileName}.", result.Metadata[Key_Name]);
+                yield return result;
+            }
         }
 
         /// <remarks>
@@ -198,7 +188,7 @@ namespace Synker.Common.Targets
             cancellationToken.ThrowIfCancellationRequested();
 
             byte[] buffer = new byte[4096];
-            await settings.ForEachAsync(setting =>
+            await foreach(var setting in settings.WithCancellation(cancellationToken))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -217,7 +207,7 @@ namespace Synker.Common.Targets
                 var ticks = long.Parse(setting.Metadata[Key_LastUpdate]);
                 var lastBundleUpdateDate = new DateTime(ticks, DateTimeKind.Utc);
                 File.SetLastWriteTime(fileName, lastBundleUpdateDate.ToLocalTime());
-            }, cancellationToken: cancellationToken);
+            };
         }
 
         /// <inheritdoc />

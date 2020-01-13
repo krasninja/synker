@@ -24,10 +24,8 @@ namespace Synker.Core
         /// Export settings.
         /// </summary>
         /// <param name="syncContext">Synchronization context.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>Settings entries.</returns>
-        IAsyncEnumerable<Setting> ExportAsync(SyncContext syncContext,
-            CancellationToken cancellationToken = default);
+        IAsyncEnumerable<Setting> ExportAsync(SyncContext syncContext);
 
         /// <summary>
         /// Import settings.

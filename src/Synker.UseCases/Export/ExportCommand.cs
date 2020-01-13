@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Dasync.Collections;
 using Microsoft.Extensions.Logging;
 using Synker.Core;
 using Synker.UseCases.Common;
@@ -98,17 +97,17 @@ namespace Synker.UseCases.Export
             foreach (var target in targets)
             {
                 // Save target settings.
-                var settingsAsyncCollection = target.ExportAsync(syncContext, cancellationToken);
-                await settingsAsyncCollection.ForEachAsync(async setting =>
+                var settingsAsyncCollection = target.ExportAsync(syncContext);
+                await foreach (var setting in settingsAsyncCollection.WithCancellation(cancellationToken))
                 {
                     if (syncContext.CancelProcessing)
                     {
                         logger.LogInformation($"Target {target.Id} requested cancel export processing.");
-                        return;
+                        continue;
                     }
                     if (setting == Setting.EmptySetting)
                     {
-                        return;
+                        continue;
                     }
                     if (string.IsNullOrEmpty(setting.Id))
                     {
@@ -117,7 +116,7 @@ namespace Synker.UseCases.Export
 
                     await (await lazyBundle.CreateOrGetAsync()).PutSettingAsync(setting, target.Id, cancellationToken);
                     settingIndex++;
-                }, cancellationToken: cancellationToken);
+                };
 
                 if (settingIndex > 0)
                 {

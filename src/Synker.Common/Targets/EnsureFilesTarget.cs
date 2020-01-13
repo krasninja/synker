@@ -4,7 +4,6 @@ using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Dasync.Collections;
 using Synker.Core;
 
 namespace Synker.Common.Targets
@@ -21,16 +20,10 @@ namespace Synker.Common.Targets
         public IList<string> Files { get; set; } = new List<string>();
 
         /// <inheritdoc />
-        public override IAsyncEnumerable<Setting> ExportAsync(SyncContext syncContext,
-            CancellationToken cancellationToken = default)
+        public override async IAsyncEnumerable<Setting> ExportAsync(SyncContext syncContext)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            return new AsyncEnumerable<Setting>(async yield =>
-            {
-                syncContext.CancelProcessing = !EnsureAllFilesExist();
-                await yield.ReturnAsync(Setting.EmptySetting);
-            });
+            syncContext.CancelProcessing = !EnsureAllFilesExist();
+            yield return Setting.EmptySetting;
         }
 
         /// <inheritdoc />

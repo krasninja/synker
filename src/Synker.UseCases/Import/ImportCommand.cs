@@ -60,7 +60,7 @@ namespace Synker.UseCases.Import
                 {
                     await target.ImportAsync(
                         syncContext,
-                        latestBundle.GetSettingsAsync(target.Id, cancellationToken),
+                        latestBundle.GetSettingsAsync(target.Id),
                         cancellationToken);
 
                     if (syncContext.CancelProcessing)

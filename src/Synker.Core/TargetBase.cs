@@ -17,8 +17,7 @@ namespace Synker.Core
         public bool Enabled { get; internal set; } = true;
 
         /// <inheritdoc />
-        public abstract IAsyncEnumerable<Setting> ExportAsync(SyncContext syncContext,
-            CancellationToken cancellationToken = default);
+        public abstract IAsyncEnumerable<Setting> ExportAsync(SyncContext syncContext);
 
         /// <inheritdoc />
         public abstract Task ImportAsync(SyncContext syncContext, IAsyncEnumerable<Setting> settings,
