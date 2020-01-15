@@ -35,7 +35,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Synker.Common\Synker.Common.csproj" />
+      <ProjectReference Include="..\Synker.Infrastructure\Synker.Infrastructure.csproj" />
       <ProjectReference Include="..\Synker.UseCases\Synker.UseCases.csproj" />
     </ItemGroup>
 

@@ -1,6 +1,6 @@
 using System;
 using System.Threading.Tasks;
-using Synker.Core;
+using Synker.Domain;
 
 namespace Synker.App
 {

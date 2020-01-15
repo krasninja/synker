@@ -9,9 +9,9 @@ using NLog.Config;
 using NLog.Extensions.Logging;
 using NLog.Targets;
 using Synker.Cli.Commands;
-using Synker.Core;
+using Synker.Domain;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
-using NullTarget = Synker.Common.Targets.NullTarget;
+using NullTarget = Synker.Infrastructure.Targets.NullTarget;
 
 namespace Synker.Cli
 {

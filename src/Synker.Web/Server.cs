@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using Synker.Core;
+using Synker.Domain;
 
 namespace Synker.Web
 {

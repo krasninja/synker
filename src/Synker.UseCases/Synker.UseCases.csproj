@@ -6,7 +6,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Synker.Core\Synker.Core.csproj" />
+      <ProjectReference Include="..\Synker.Domain\Synker.Domain.csproj" />
       <ProjectReference Include="..\Synker.UseCases.Common\Synker.UseCases.Common.csproj" />
     </ItemGroup>
 

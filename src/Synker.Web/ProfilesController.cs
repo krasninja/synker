@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Synker.Core;
+using Synker.Domain;
 using Synker.UseCases.Export;
 using Synker.UseCases.Import;
 

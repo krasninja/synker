@@ -17,8 +17,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Synker.Common\Synker.Common.csproj" />
-      <ProjectReference Include="..\Synker.Core\Synker.Core.csproj" />
+      <ProjectReference Include="..\Synker.Domain\Synker.Domain.csproj" />
+      <ProjectReference Include="..\Synker.Infrastructure\Synker.Infrastructure.csproj" />
       <ProjectReference Include="..\Synker.Web\Synker.Web.csproj" />
     </ItemGroup>
 

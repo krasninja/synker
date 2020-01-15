@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Synker.Core;
+using Synker.Domain;
 using Synker.UseCases.Common;
 
 namespace Synker.UseCases.Export

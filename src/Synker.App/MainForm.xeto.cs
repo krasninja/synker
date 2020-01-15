@@ -14,12 +14,12 @@ using NLog.Targets;
 using Saritasa.Tools.Common.Extensions;
 using Saritasa.Tools.Common.Utils;
 using Saritasa.Tools.Domain.Exceptions;
-using Synker.Common.Bundles;
-using Synker.Common.ProfileLoaders;
-using Synker.Core;
+using Synker.Infrastructure.Bundles;
+using Synker.Infrastructure.ProfileLoaders;
+using Synker.Domain;
 using Synker.UseCases.StartMonitor;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
-using NullTarget = Synker.Common.Targets.NullTarget;
+using NullTarget = Synker.Infrastructure.Targets.NullTarget;
 
 namespace Synker.App
 {

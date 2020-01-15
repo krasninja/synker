@@ -1,8 +1,8 @@
 using System.Threading.Tasks;
 using McMaster.Extensions.CommandLineUtils;
-using Synker.Common.Bundles;
-using Synker.Common.ProfileLoaders;
-using Synker.Core;
+using Synker.Infrastructure.Bundles;
+using Synker.Infrastructure.ProfileLoaders;
+using Synker.Domain;
 using Synker.UseCases.Export;
 using Synker.UseCases.Import;
 

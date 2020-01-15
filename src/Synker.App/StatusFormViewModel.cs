@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Eto.Forms;
 using Synker.App.Abstract;
 using Synker.App.Annotations;
-using Synker.Core;
+using Synker.Domain;
 
 namespace Synker.App
 {
