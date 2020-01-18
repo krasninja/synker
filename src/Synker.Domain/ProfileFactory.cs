@@ -20,6 +20,8 @@ namespace Synker.Domain
     /// </summary>
     public static class ProfileFactory
     {
+        private const string TargetsKey = "targets";
+
         private static readonly List<Type> targetTypes = new List<Type>();
 
         private static readonly IDeserializer deserializer = new DeserializerBuilder()
@@ -82,25 +84,23 @@ namespace Synker.Domain
             var excludePatternsArray = excludePatterns.ToArray();
             while ((stream = (await profileLoader.GetNextAsync())) != null)
             {
-                var profile = LoadFromStream(stream);
+                var streamProfiles = LoadFromStream(stream);
                 stream.Close();
                 stream.Dispose();
-                if (MatchAnyWildcardPattern(profile.Id, excludePatternsArray))
-                {
-                    continue;
-                }
-                profiles.Add(profile);
+                var acceptedStreamProfiles = streamProfiles
+                    .Where(p => !MatchAnyWildcardPattern(p.Id, excludePatternsArray));
+                profiles.AddRange(acceptedStreamProfiles);
             }
             return profiles;
         }
 
         /// <summary>
-        /// Load profile from stream.
+        /// Load profiles from stream.
         /// </summary>
         /// <param name="stream">Text stream.</param>
-        /// <returns>Profile.</returns>
-        /// <exception cref="InvalidOperationException"></exception>
-        public static Profile LoadFromStream(Stream stream)
+        /// <returns>Loaded profiles.</returns>
+        /// <exception cref="SettingsSyncException">Stream cannot be parsed.</exception>
+        public static IList<Profile> LoadFromStream(Stream stream)
         {
             if (stream == null)
             {
@@ -111,52 +111,64 @@ namespace Synker.Domain
             var yaml = new YamlStream();
             yaml.Load(sr);
 
-            var profile = deserializer.Deserialize<Profile>(
-                new EventStreamParserAdapter(
-                    YamlNodeToEventStreamConverter.ConvertToEventStream(yaml.Documents[0])
-                ));
-            var targetsNode = ((YamlMappingNode)yaml.Documents[0].RootNode)
-                .Children[new YamlScalarNode("targets")];
-            if (targetsNode == null)
+            if (yaml.Documents.Count != 1)
             {
-                throw new SettingsSyncException("Profile file does not contain targets.");
+                throw new SettingsSyncException("Incorrect profiles stream format.");
             }
-            profile.AddTargets(ParseTargets(targetsNode));
-            FillMissedTargetsIds(profile.Targets);
-            ReplaceTokensForTargets(profile.Targets);
-            ValidateProfileAndTargets(profile);
-            logger.LogInformation($"Loaded profile {profile.Id} with {profile.Targets.Count} target(-s).");
-            return profile;
+
+            var yamlProfiles = yaml.Documents[0].RootNode is YamlSequenceNode yamlProfilesSeq ?
+                yamlProfilesSeq.Children :
+                new List<YamlNode> { yaml.Documents[0].RootNode };
+            var profiles = new List<Profile>(yamlProfiles.Count());
+            foreach (YamlMappingNode yamlProfile in yamlProfiles)
+            {
+                var profile = deserializer.Deserialize<Profile>(
+                    new EventStreamParserAdapter(
+                        YamlNodeToEventStreamConverter.ConvertToEventStream(yamlProfile)
+                    ));
+                var yamlActions = yamlProfile.Children[new YamlScalarNode(TargetsKey)];
+                if (yamlActions == null)
+                {
+                    throw new SettingsSyncException("Profile stream does not contain targets.");
+                }
+                profile.AddTargets(ParseActions(yamlActions));
+                FillMissedActionsIds(profile.Targets);
+                ReplaceTokensForActions(profile.Targets);
+                ValidateProfileAndActions(profile);
+                logger.LogInformation($"Loaded profile {profile.Id} with {profile.Targets.Count} action(-s).");
+                profiles.Add(profile);
+            }
+
+            return profiles;
         }
 
         /// <summary>
-        /// Load profile from YAML file.
+        /// Load profiles from YAML file.
         /// </summary>
         /// <param name="file">File name.</param>
-        /// <returns>Profile.</returns>
-        /// <exception cref="InvalidOperationException"></exception>
-        public static Profile LoadFromFile(string file)
+        /// <returns>Profiles.</returns>
+        public static IList<Profile> LoadFromFile(string file)
         {
             if (file == null)
             {
                 throw new ArgumentNullException(nameof(file));
             }
 
-            logger.LogInformation($"Start loading profile from file {file}.");
+            logger.LogInformation($"Start loading profiles from file {file}.");
             using var fileStream = File.Open(file, FileMode.Open, FileAccess.Read, FileShare.None);
             return LoadFromStream(fileStream);
         }
 
-        private static IList<ITarget> ParseTargets(YamlNode node)
+        private static IList<ITarget> ParseActions(YamlNode node)
         {
-            var targets = new List<ITarget>();
-            var sequenceNode = node as YamlSequenceNode;
-            if (sequenceNode == null)
+            var actions = new List<ITarget>();
+            var yamlActions = node as YamlSequenceNode;
+            if (yamlActions == null)
             {
-                throw new SettingsSyncException("Targets must be sequence.");
+                throw new SettingsSyncException("Targets must be a sequence.");
             }
 
-            foreach (YamlMappingNode targetNode in sequenceNode.Children)
+            foreach (YamlMappingNode targetNode in yamlActions.Children)
             {
                 var targetTypeString = targetNode.Children[new YamlScalarNode("type")] as YamlScalarNode;
                 if (targetTypeString == null)
@@ -164,12 +176,12 @@ namespace Synker.Domain
                     continue;
                 }
 
-                var typeName = targetTypeString.Value.Replace("-", string.Empty) + "Target";
+                var typeName = targetTypeString.Value.Replace("-", string.Empty) + "Action";
                 var targetType = targetTypes.FirstOrDefault(tt =>
                     string.Compare(tt.Name, typeName, StringComparison.OrdinalIgnoreCase) == 0);
                 if (targetType == null)
                 {
-                    throw new SettingsSyncException($"Cannot find target {targetTypeString}.");
+                    throw new SettingsSyncException($"Cannot find action {targetTypeString}.");
                 }
 
                 var target = deserializer.Deserialize(
@@ -179,11 +191,11 @@ namespace Synker.Domain
                     targetType) as ITarget;
                 if (target != null)
                 {
-                    targets.Add(target);
+                    actions.Add(target);
                 }
             }
 
-            return targets;
+            return actions;
         }
 
         private static bool MatchAnyWildcardPattern(string pattern, IEnumerable<string> patternsExclude)
@@ -193,7 +205,7 @@ namespace Synker.Domain
                 .Any(pi => Regex.IsMatch(pattern, pi, RegexOptions.IgnoreCase));
         }
 
-        private static void FillMissedTargetsIds(IList<ITarget> targets)
+        private static void FillMissedActionsIds(IList<ITarget> targets)
         {
             for (int i = 0; i < targets.Count; i++)
             {
@@ -204,7 +216,7 @@ namespace Synker.Domain
             }
         }
 
-        private static void ReplaceTokensForTargets(IList<ITarget> targets)
+        private static void ReplaceTokensForActions(IList<ITarget> targets)
         {
             foreach (ITarget target in targets)
             {
@@ -248,7 +260,7 @@ namespace Synker.Domain
             }
         }
 
-        private static void ValidateProfileAndTargets(Profile profile)
+        private static void ValidateProfileAndActions(Profile profile)
         {
             ValidateObject(profile);
             foreach (ITarget profileTarget in profile.Targets)

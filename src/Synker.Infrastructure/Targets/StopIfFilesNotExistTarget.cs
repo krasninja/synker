@@ -11,7 +11,7 @@ namespace Synker.Infrastructure.Targets
     /// <summary>
     /// Ensures that files exist. Otherwise cancels export or import.
     /// </summary>
-    public class EnsureFilesTarget : TargetBase
+    public class StopIfFilesNotExistTarget : TargetBase
     {
         /// <summary>
         /// Files that must exist.

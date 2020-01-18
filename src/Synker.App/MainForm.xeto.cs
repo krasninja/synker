@@ -17,6 +17,7 @@ using Saritasa.Tools.Domain.Exceptions;
 using Synker.Infrastructure.Bundles;
 using Synker.Infrastructure.ProfileLoaders;
 using Synker.Domain;
+using Synker.Infrastructure.Targets;
 using Synker.UseCases.StartMonitor;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 using NullTarget = Synker.Infrastructure.Targets.NullTarget;

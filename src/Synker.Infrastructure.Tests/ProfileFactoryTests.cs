@@ -1,4 +1,5 @@
 using System.IO;
+using System.Linq;
 using System.Text;
 using Synker.Infrastructure.Targets;
 using Synker.Domain;
@@ -25,7 +26,8 @@ targets:
 ";
 
             // Act
-            var profile = ProfileFactory.LoadFromStream(new MemoryStream(Encoding.UTF8.GetBytes(profileText)));
+            ProfileFactory.AddTargetTypesFromAssembly(typeof(NullTarget).Assembly);
+            var profile = ProfileFactory.LoadFromStream(new MemoryStream(Encoding.UTF8.GetBytes(profileText))).First();
 
             // Assert
             Assert.NotNull(profile);
@@ -46,22 +48,23 @@ id: filezilla
 name: FileZilla
 description: FileZilla layout and hosts settings.
 targets:
-  - type: files
+  - type: add-files-to-bundle
     id: settings
     win:base-path: ${folder:ApplicationData}\FileZilla\
     linux:base-path: ~/.filezilla/
-    patterns:
+    files:
       - ""*.sqlite3""
       - ""*.xml""
 ";
 
             // Act
-            var profile = ProfileFactory.LoadFromStream(new MemoryStream(Encoding.UTF8.GetBytes(profileText)));
+            ProfileFactory.AddTargetTypesFromAssembly(typeof(NullTarget).Assembly);
+            var profile = ProfileFactory.LoadFromStream(new MemoryStream(Encoding.UTF8.GetBytes(profileText))).First();
 
             // Assert
             Assert.NotNull(profile);
             Assert.Equal(1, profile.Targets.Count);
-            var filesTarget = profile.Targets[0] as FilesTarget;
+            var filesTarget = profile.Targets[0] as AddFilesToBundleTarget;
             Assert.Equal(new[] { "*.sqlite3", "*.xml" }, filesTarget.Files);
         }
     }

@@ -4,9 +4,9 @@ using Xunit;
 namespace Synker.Infrastructure.Tests
 {
     /// <summary>
-    /// Tests for <see cref="FilesTarget" />.
+    /// Tests for <see cref="AddFilesToBundleTarget" />.
     /// </summary>
-    public class FilesTargetTests
+    public class AddFilesToBundleActionTests
     {
         [Theory]
         [InlineData(@"C:\work\synker\", @"c:\Work\synker\file.txt", true, @".\file.txt")]
@@ -19,7 +19,7 @@ namespace Synker.Infrastructure.Tests
             bool caseInsensitive, string expected)
         {
             // Arrange & act
-            var relativePath = FilesTarget.GetRelativeFilePath(relativeTo, path, caseInsensitive);
+            var relativePath = AddFilesToBundleTarget.GetRelativeFilePath(relativeTo, path, caseInsensitive);
 
             // Assert
             Assert.Equal(expected, relativePath);

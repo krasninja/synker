@@ -10,6 +10,7 @@ using NLog.Extensions.Logging;
 using NLog.Targets;
 using Synker.Cli.Commands;
 using Synker.Domain;
+using Synker.Infrastructure.Targets;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 using NullTarget = Synker.Infrastructure.Targets.NullTarget;
 

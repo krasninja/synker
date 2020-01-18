@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Synker.Domain;
@@ -11,8 +12,10 @@ namespace Synker.Infrastructure.Targets
     /// <summary>
     /// Ensures that directories exist. Otherwise cancels export or import.
     /// </summary>
-    public class EnsureDirectoriesTarget : TargetBase
+    public class StopIfDirectoriesNotExistTarget : TargetBase
     {
+
+
         /// <summary>
         /// Directories that must exist.
         /// </summary>
@@ -20,10 +23,8 @@ namespace Synker.Infrastructure.Targets
         public IList<string> Directories { get; } = new List<string>();
 
         /// <inheritdoc />
-        public override async IAsyncEnumerable<Setting> ExportAsync(SyncContext syncContext)
-        {
-            yield return Setting.EmptySetting;
-        }
+        public override IAsyncEnumerable<Setting> ExportAsync(SyncContext syncContext)
+            => Setting.EmptySettings.ToAsyncEnumerable();
 
         /// <inheritdoc />
         public override Task ImportAsync(SyncContext syncContext, IAsyncEnumerable<Setting> settings,

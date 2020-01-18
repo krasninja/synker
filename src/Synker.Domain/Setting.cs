@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
@@ -14,6 +15,14 @@ namespace Synker.Domain
         public static readonly Setting EmptySetting = new Setting
         {
             Id = "empty"
+        };
+
+        /// <summary>
+        /// Enumerable of empty settings.
+        /// </summary>
+        public static readonly IEnumerable<Setting> EmptySettings = new Setting[]
+        {
+            EmptySetting
         };
 
         /// <summary>

@@ -33,7 +33,7 @@ namespace Synker.Domain
         public string Description { get; set; }
 
         /// <summary>
-        /// Configuration entries information.
+        /// Target to be performed on export and import.
         /// </summary>
         [YamlIgnore]
         public IList<ITarget> Targets { get; } = new List<ITarget>();

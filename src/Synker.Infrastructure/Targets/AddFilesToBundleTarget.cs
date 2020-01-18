@@ -16,7 +16,7 @@ namespace Synker.Infrastructure.Targets
     /// <summary>
     /// Target processes files and directories.
     /// </summary>
-    public class FilesTarget : TargetBase, ITargetWithMonitor, IDisposable
+    public class AddFilesToBundleTarget : TargetBase, ITargetWithMonitor, IDisposable
     {
         private const string Key_LastUpdate = "last-update";
         private const string Key_Name = "name";
@@ -31,7 +31,7 @@ namespace Synker.Infrastructure.Targets
         /// Files or directories to export or import.
         /// </summary>
         [Required]
-        public IList<string> Files { get; set; } = new List<string>();
+        public IList<string> Files { get; } = new List<string>();
 
         /// <summary>
         /// Skip file export if it does not exist on target system.
@@ -44,11 +44,11 @@ namespace Synker.Infrastructure.Targets
         /// <remarks>Service https://regex101.com/ can be used for better testing.</remarks>
         public IList<string> ExcludePatterns { get; set; } = new List<string>();
 
-        private static readonly ILogger<FilesTarget> logger = AppLogger.Create<FilesTarget>();
+        private static readonly ILogger<AddFilesToBundleTarget> logger = AppLogger.Create<AddFilesToBundleTarget>();
 
         private FileSystemWatcher watcher;
 
-        public FilesTarget()
+        public AddFilesToBundleTarget()
         {
             if (!string.IsNullOrEmpty(BasePath) && !Path.IsPathRooted(BasePath))
             {
