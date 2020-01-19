@@ -9,6 +9,8 @@
     <ItemGroup>
       <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="1.1.0" />
       <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.1" />
+      <PackageReference Include="Saritasa.Tools.Common" Version="3.1.1" />
+      <PackageReference Include="Saritasa.Tools.Domain" Version="0.7.0" />
       <PackageReference Include="System.ComponentModel.Annotations" Version="4.7.0" />
       <PackageReference Include="YamlDotNet" Version="8.1.0" />
     </ItemGroup>

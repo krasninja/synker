@@ -176,7 +176,7 @@ namespace Synker.Domain
                     continue;
                 }
 
-                var typeName = targetTypeString.Value.Replace("-", string.Empty) + "Action";
+                var typeName = targetTypeString.Value.Replace("-", string.Empty) + "Target";
                 var targetType = targetTypes.FirstOrDefault(tt =>
                     string.Compare(tt.Name, typeName, StringComparison.OrdinalIgnoreCase) == 0);
                 if (targetType == null)

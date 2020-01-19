@@ -128,23 +128,23 @@ namespace Synker.App
 
         private void ShowLogHandler(object sender, EventArgs args)
         {
-            var configData = UserConfiguration.Get();
-            if (configData.ContainsKey(UserConfiguration.LogFileKey))
+            var configData = UserConfiguration.LoadFromFile();
+            if (!string.IsNullOrEmpty(configData.LogFile))
             {
-                Process.Start(configData[UserConfiguration.LogFileKey]);
+                Process.Start(configData.LogFile);
             }
         }
 
         private void ShowBundlesDirectoryHandler(object sender, EventArgs args)
         {
-            var configData = UserConfiguration.Get();
-            Process.Start(configData[UserConfiguration.BundlesDirectoryKey]);
+            var configData = UserConfiguration.LoadFromFile();
+            Process.Start(configData.BundlesDirectory);
         }
 
         private void ShowProfilesDirectoryHandler(object sender, EventArgs args)
         {
-            var configData = UserConfiguration.Get();
-            Process.Start(configData[UserConfiguration.ProfilesSourceKey]);
+            var configData = UserConfiguration.LoadFromFile();
+            Process.Start(configData.ProfilesSource);
         }
 
         private void AboutHandler(object sender, EventArgs args)
@@ -167,33 +167,22 @@ namespace Synker.App
 
         private async void OnLoad(object sender, EventArgs args)
         {
-            var configData = UserConfiguration.Get();
-
-            if (!configData.ContainsKey(UserConfiguration.ProfilesSourceKey))
-            {
-                throw new DomainException($"Cannot find property {UserConfiguration.ProfilesSourceKey}.");
-            }
-            if (!configData.ContainsKey(UserConfiguration.BundlesDirectoryKey))
-            {
-                throw new DomainException($"Cannot find property {UserConfiguration.BundlesDirectoryKey}.");
-            }
+            var configData = UserConfiguration.LoadFromFile();
 
             // Setup logging.
-            AppLogger.LoggerFactory = configData.ContainsKey(UserConfiguration.LogFileKey) ?
-                ConfigureFileLogging(configData[UserConfiguration.LogFileKey]) :
+            AppLogger.LoggerFactory = !string.IsNullOrEmpty(configData.LogFile) ?
+                ConfigureFileLogging(configData.LogFile) :
                 ConfigureConsoleLogging();
 
             // Setup profiles and start monitoring.
             ProfileFactory.AddTargetTypesFromAssembly(typeof(NullTarget).Assembly);
-            var filesProfileLoader = new FilesProfileLoader(configData[UserConfiguration.ProfilesSourceKey]);
-            bundleFactory = new ZipBundleFactory(configData[UserConfiguration.BundlesDirectoryKey]);
+            var filesProfileLoader = new FilesProfileLoader(configData.ProfilesSource);
+            bundleFactory = new ZipBundleFactory(configData.BundlesDirectory);
             profiles = await ProfileFactory.LoadAsync(filesProfileLoader);
             var startMonitorCommand = new StartMonitorCommand(profiles, bundleFactory)
             {
-                DisableExport = !StringUtils.ParseOrDefault(
-                    configData.GetValueOrDefault(UserConfiguration.DisableExportKey), true),
-                DisableImport = !StringUtils.ParseOrDefault(
-                    configData.GetValueOrDefault(UserConfiguration.DisableImportKey), true)
+                DisableExport = configData.DisableExport,
+                DisableImport = configData.DisableImport
             };
             delayActionRunner = await startMonitorCommand.ExecuteAsync();
         }

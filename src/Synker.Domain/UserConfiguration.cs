@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Saritasa.Tools.Common.Utils;
+using Saritasa.Tools.Domain.Exceptions;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -23,8 +25,46 @@ namespace Synker.Domain
             .IgnoreUnmatchedProperties()
             .Build();
 
+        private readonly IDictionary<string, string> data;
+
         private UserConfiguration()
         {
+        }
+
+        private UserConfiguration(IDictionary<string, string> data)
+        {
+            this.data = data;
+        }
+
+        public string ProfilesSource => GetOrThrow(ProfilesSourceKey);
+
+        public string BundlesDirectory => GetOrThrow(BundlesDirectoryKey);
+
+        public string LogFile => DictionaryUtils.GetValueOrDefault(data, LogFileKey, string.Empty);
+
+        public bool DisableImport => StringUtils.ParseOrDefault(
+            DictionaryUtils.GetValueOrDefault(data, DisableImportKey), false);
+
+        public bool DisableExport => StringUtils.ParseOrDefault(
+            DictionaryUtils.GetValueOrDefault(data, DisableExportKey), false);
+
+        /// <summary>
+        /// Returns config value by key or throw exception.
+        /// </summary>
+        /// <param name="key">Dictionary key.</param>
+        /// <returns>Value returned by key.</returns>
+        /// <exception cref="DomainException">Key doesn't exist.</exception>
+        private string GetOrThrow(string key)
+        {
+            if (string.IsNullOrEmpty(key))
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+            if (!data.ContainsKey(key))
+            {
+                throw new DomainException($"Cannot find key {key}.");
+            }
+            return data[key];
         }
 
         /// <summary>
@@ -33,7 +73,7 @@ namespace Synker.Domain
         /// <param name="configFile">Config file or default one.</param>
         /// <returns>Configuration.</returns>
         /// <exception cref="InvalidOperationException">File not found.</exception>
-        public static IDictionary<string, string> Get(string configFile = null)
+        public static UserConfiguration LoadFromFile(string configFile = null)
         {
             if (string.IsNullOrEmpty(configFile))
             {
@@ -47,12 +87,23 @@ namespace Synker.Domain
             return GetConfigData(configFile);
         }
 
-        private static IDictionary<string, string> GetConfigData(string file)
+        private static UserConfiguration GetConfigData(string file)
         {
             using var fileStream = File.Open(file, FileMode.Open, FileAccess.Read, FileShare.None);
             using var sr = new StreamReader(fileStream);
-            var profile = deserializer.Deserialize<IDictionary<string, string>>(sr.ReadToEnd());
-            return profile;
+            var data = deserializer.Deserialize<IDictionary<string, string>>(sr.ReadToEnd());
+            return new UserConfiguration(data);
+        }
+
+        /// <summary>
+        /// Create empty configuration.
+        /// </summary>
+        /// <returns>Empty configuration.</returns>
+        public static UserConfiguration CreateEmpty(Action<IDictionary<string, string>> setup)
+        {
+            var userConfiguration = new UserConfiguration();
+            setup(userConfiguration.data);
+            return userConfiguration;
         }
     }
 }

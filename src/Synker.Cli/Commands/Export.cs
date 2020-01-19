@@ -18,9 +18,9 @@ namespace Synker.Cli.Commands
 
         public async Task<int> OnExecuteAsync()
         {
-            var filesProfileLoader = new FilesProfileLoader(Profiles);
-            var profiles = await ProfileFactory.LoadAsync(filesProfileLoader, ProfilesExclude);
-            var bundleFactory = new ZipBundleFactory(Bundles);
+            var config = GetUserConfiguration();
+            var profiles = await GetProfilesAsync(config);
+            var bundleFactory = new ZipBundleFactory(config.BundlesDirectory);
             foreach (var profile in profiles)
             {
                 var command = new ExportCommand(profile, bundleFactory)
