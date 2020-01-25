@@ -1,8 +1,6 @@
 using System.Threading.Tasks;
 using McMaster.Extensions.CommandLineUtils;
 using Synker.Infrastructure.Bundles;
-using Synker.Infrastructure.ProfileLoaders;
-using Synker.Domain;
 using Synker.UseCases.Import;
 
 namespace Synker.Cli.Commands
@@ -10,7 +8,7 @@ namespace Synker.Cli.Commands
     /// <summary>
     /// Import settings to local applications.
     /// </summary>
-    [Command(Name = "import", Description = "Import settings from local applications")]
+    [Command(Name = "import", Description = "Import settings to local applications")]
     internal class Import : ExportImportBase
     {
         [Option("-f|--force", "Force import.", CommandOptionType.NoValue)]

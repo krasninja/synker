@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Synker.Desktop.ViewModels
+﻿namespace Synker.Desktop.ViewModels
 {
     public class MainWindowViewModel : ViewModelBase
     {

@@ -55,7 +55,7 @@ namespace Synker.Cli
             // Logging.
             AppLogger.LoggerFactory = ConfigureLogging();
             logger = AppLogger.Create<Program>();
-            logger.LogInformation($"Application startup at {DateTime.Now:u}");
+            logger.LogInformation($"Application startup at {DateTime.Now:yyyy-MM-dd}.");
             ProfileFactory.AddTargetTypesFromAssembly(typeof(NullTarget).Assembly);
 
             return await CommandLineApplication.ExecuteAsync<Program>(args);
