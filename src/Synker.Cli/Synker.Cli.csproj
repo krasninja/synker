@@ -7,12 +7,10 @@
         <PackageVersion>0.1.0</PackageVersion>
         <Title>Settings Synker</Title>
         <Authors>AntiSoft</Authors>
-        <Copyright>AntiSoft (c) 2019</Copyright>
+        <Copyright>AntiSoft (c) 2019-2020</Copyright>
         <LangVersion>latest</LangVersion>
         <CodeAnalysisRuleSet>../../tools/Saritasa.ruleset</CodeAnalysisRuleSet>
         <AssemblyName>synker-cli</AssemblyName>
-        <PublishSingleFile>true</PublishSingleFile>
-        <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     </PropertyGroup>
 
     <ItemGroup>
