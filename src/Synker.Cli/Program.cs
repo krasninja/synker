@@ -18,7 +18,7 @@ namespace Synker.Cli
     /// <summary>
     /// Entry point class.
     /// </summary>
-    [Command(Name = "Settings Synker", Description = "Applications settings synchronization utility.",
+    [Command(Name = "synker-cli", Description = "Applications settings synchronization utility.",
         ThrowOnUnexpectedArgument = true)]
     [Subcommand(typeof(Clean))]
     [Subcommand(typeof(Export))]
@@ -63,7 +63,7 @@ namespace Synker.Cli
 
         private Task<int> OnExecuteAsync(CommandLineApplication app, IConsole console)
         {
-            app.ShowHelp();
+            app.ShowHelp(usePager: false);
             return Task.FromResult(1);
         }
 
