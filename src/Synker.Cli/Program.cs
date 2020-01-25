@@ -10,7 +10,6 @@ using NLog.Extensions.Logging;
 using NLog.Targets;
 using Synker.Cli.Commands;
 using Synker.Domain;
-using Synker.Infrastructure.Targets;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 using NullTarget = Synker.Infrastructure.Targets.NullTarget;
 
@@ -62,10 +61,10 @@ namespace Synker.Cli
             return await CommandLineApplication.ExecuteAsync<Program>(args);
         }
 
-        public Task<int> OnExecuteAsync()
+        private Task<int> OnExecuteAsync(CommandLineApplication app, IConsole console)
         {
-            // TODO: Show usage.
-            return Task.FromResult(0);
+            app.ShowHelp();
+            return Task.FromResult(1);
         }
 
         private static ILoggerFactory ConfigureLogging()
