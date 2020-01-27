@@ -1,4 +1,5 @@
 using System;
+using Saritasa.Tools.Domain.Exceptions;
 
 namespace Synker.Domain
 {
@@ -6,7 +7,7 @@ namespace Synker.Domain
     /// Settings Synker related exception.
     /// </summary>
     [Serializable]
-    public class SettingsSyncException : Exception
+    public class SettingsSyncException : DomainException
     {
         /// <inheritdoc />
         public SettingsSyncException()

@@ -96,6 +96,12 @@ namespace Synker.UseCases.Export
             int settingIndex = 0;
             foreach (var target in targets)
             {
+                var targetValidationResults = Saritasa.Tools.Domain.ValidationErrors.CreateFromObjectValidation(target);
+                if (targetValidationResults.HasErrors)
+                {
+                    throw new Saritasa.Tools.Domain.Exceptions.ValidationException(targetValidationResults);
+                }
+
                 // Save target settings.
                 var settingsAsyncCollection = target.ExportAsync(syncContext);
                 await foreach (var setting in settingsAsyncCollection.WithCancellation(cancellationToken))

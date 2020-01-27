@@ -8,6 +8,7 @@ using NLog;
 using NLog.Config;
 using NLog.Extensions.Logging;
 using NLog.Targets;
+using Saritasa.Tools.Domain.Exceptions;
 using Synker.Cli.Commands;
 using Synker.Domain;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
@@ -35,30 +36,23 @@ namespace Synker.Cli
         /// <returns>Exit code.</returns>
         public static async Task<int> Main(string[] args)
         {
-            // Setup unhandled exceptions handler.
-            AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
-            {
-                if (e.ExceptionObject is SettingsSyncException settingsSyncException)
-                {
-                    logger.LogError(settingsSyncException.Message);
-                }
-                else if (e.ExceptionObject is Exception exception)
-                {
-                    logger.LogCritical(exception.Message);
-                }
-                else
-                {
-                    logger.LogCritical(e.ExceptionObject.ToString());
-                }
-            };
-
             // Logging.
             AppLogger.LoggerFactory = ConfigureLogging();
             logger = AppLogger.Create<Program>();
             logger.LogInformation($"Application startup at {DateTime.Now:yyyy-MM-dd}.");
             ProfileFactory.AddTargetTypesFromAssembly(typeof(NullTarget).Assembly);
 
-            return await CommandLineApplication.ExecuteAsync<Program>(args);
+            ValidationException.MessageFormatter = ValidationExceptionDelegates.GroupErrorsOrDefaultMessageFormatter;
+
+            try
+            {
+                return await CommandLineApplication.ExecuteAsync<Program>(args);
+            }
+            catch (DomainException domainException)
+            {
+                logger.LogError(domainException.Message);
+                return -2;
+            }
         }
 
         private Task<int> OnExecuteAsync(CommandLineApplication app, IConsole console)

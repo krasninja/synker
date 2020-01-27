@@ -5,33 +5,36 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Synker.Domain;
 
 namespace Synker.Infrastructure.Targets
 {
     /// <summary>
     /// Ensures that directories exist. Otherwise cancels export or import.
+    /// The target name in profile file must be "stop-if-directories-not-exist".
     /// </summary>
     public class StopIfDirectoriesNotExistTarget : TargetBase
     {
-
-
         /// <summary>
         /// Directories that must exist.
         /// </summary>
         [Required]
-        public IList<string> Directories { get; } = new List<string>();
+        public IList<string> Directories { get; set; } = new List<string>();
+
+        private readonly ILogger<StopIfFilesNotExistTarget> logger = AppLogger.Create<StopIfFilesNotExistTarget>();
 
         /// <inheritdoc />
         public override IAsyncEnumerable<Setting> ExportAsync(SyncContext syncContext)
-            => Setting.EmptySettings.ToAsyncEnumerable();
+        {
+            syncContext.CancelProcessing = !EnsureAllDirectoriesExist();
+            return Setting.EmptySettings.ToAsyncEnumerable();
+        }
 
         /// <inheritdoc />
         public override Task ImportAsync(SyncContext syncContext, IAsyncEnumerable<Setting> settings,
             CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
             syncContext.CancelProcessing = !EnsureAllDirectoriesExist();
             return Task.CompletedTask;
         }
@@ -46,7 +49,9 @@ namespace Synker.Infrastructure.Targets
         {
             foreach (string directory in Directories)
             {
-                if (!Directory.Exists(directory))
+                var exist = Directory.Exists(directory);
+                logger.LogTrace("Verify directory existence {directory} - {exist}.", directory, exist);
+                if (!exist)
                 {
                     return false;
                 }

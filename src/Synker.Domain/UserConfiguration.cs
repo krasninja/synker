@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Saritasa.Tools.Common.Utils;
-using Saritasa.Tools.Domain.Exceptions;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -25,7 +24,7 @@ namespace Synker.Domain
             .IgnoreUnmatchedProperties()
             .Build();
 
-        private readonly IDictionary<string, string> data;
+        private readonly IDictionary<string, string> data = new Dictionary<string, string>();
 
         private UserConfiguration()
         {
@@ -53,7 +52,7 @@ namespace Synker.Domain
         /// </summary>
         /// <param name="key">Dictionary key.</param>
         /// <returns>Value returned by key.</returns>
-        /// <exception cref="DomainException">Key doesn't exist.</exception>
+        /// <exception cref="SettingsSyncException">Key doesn't exist.</exception>
         private string GetOrThrow(string key)
         {
             if (string.IsNullOrEmpty(key))
@@ -62,7 +61,7 @@ namespace Synker.Domain
             }
             if (!data.ContainsKey(key))
             {
-                throw new DomainException($"Cannot find key {key}.");
+                throw new SettingsSyncException($"Cannot find key {key}.");
             }
             return data[key];
         }
@@ -82,7 +81,7 @@ namespace Synker.Domain
             }
             if (!File.Exists(configFile))
             {
-                throw new InvalidOperationException($"Cannot find config file ${configFile}.");
+                throw new SettingsSyncException($"Cannot find default config file {configFile}.");
             }
             return GetConfigData(configFile);
         }

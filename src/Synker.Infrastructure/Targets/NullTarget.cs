@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Synker.Domain;
@@ -8,13 +9,14 @@ namespace Synker.Infrastructure.Targets
 {
     /// <summary>
     /// Target that does nothing. For testing only.
+    /// The target name in profile file must be "null".
     /// </summary>
     public class NullTarget : TargetBase
     {
         /// <inheritdoc />
-        public override async IAsyncEnumerable<Setting> ExportAsync(SyncContext syncContext)
+        public override IAsyncEnumerable<Setting> ExportAsync(SyncContext syncContext)
         {
-            yield break;
+            return Setting.EmptySettings.ToAsyncEnumerable();
         }
 
         /// <inheritdoc />

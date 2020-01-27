@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Synker.Domain;
 
 namespace Synker.Infrastructure.ProfileLoaders
@@ -16,6 +17,7 @@ namespace Synker.Infrastructure.ProfileLoaders
         private readonly IEnumerable<string> sources;
         private IList<string> files;
         private int currentIndex;
+        private readonly ILogger<FilesProfileLoader> logger = AppLogger.Create<FilesProfileLoader>();
 
         public FilesProfileLoader(string source)
         {
@@ -47,6 +49,7 @@ namespace Synker.Infrastructure.ProfileLoaders
             {
                 return Task.FromResult<Stream>(null);
             }
+            logger.LogTrace($"Loading profile from file {files[currentIndex]} .");
             var stream = File.Open(files[currentIndex], FileMode.Open, FileAccess.Read, FileShare.None);
             currentIndex++;
             return Task.FromResult<Stream>(stream);

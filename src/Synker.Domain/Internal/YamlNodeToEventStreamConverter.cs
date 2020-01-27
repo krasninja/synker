@@ -92,8 +92,7 @@ namespace Synker.Domain.Internal
 
         private static YamlNode ReplacePlatformSpecificToNodeAndVerify(YamlNode node, ISet<string> resolvedPlatformTags)
         {
-            var scalarNode = node as YamlScalarNode;
-            if (scalarNode != null)
+            if (node is YamlScalarNode scalarNode)
             {
                 var name = PlatformSpecificTagsReplacer.GetPlatformResolvedTag(scalarNode.Value, resolvedPlatformTags);
                 if (!string.IsNullOrEmpty(name))

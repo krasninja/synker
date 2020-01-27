@@ -134,7 +134,14 @@ namespace Synker.Domain
                 profile.AddTargets(ParseActions(yamlActions));
                 FillMissedActionsIds(profile.Targets);
                 ReplaceTokensForActions(profile.Targets);
-                ValidateProfileAndActions(profile);
+
+                // Validate profile.
+                var profileValidationResults = Saritasa.Tools.Domain.ValidationErrors.CreateFromObjectValidation(profile);
+                if (profileValidationResults.HasErrors)
+                {
+                    throw new Saritasa.Tools.Domain.Exceptions.ValidationException(profileValidationResults);
+                }
+
                 logger.LogInformation($"Loaded profile {profile.Id} with {profile.Targets.Count} action(-s).");
                 profiles.Add(profile);
             }
@@ -257,28 +264,6 @@ namespace Synker.Domain
                         }
                     }
                 }
-            }
-        }
-
-        private static void ValidateProfileAndActions(Profile profile)
-        {
-            ValidateObject(profile);
-            foreach (ITarget profileTarget in profile.Targets)
-            {
-                ValidateObject(profileTarget);
-            }
-        }
-
-        private static void ValidateObject(object obj)
-        {
-            var validationContext = new ValidationContext(obj, null, null);
-            var validationResults = new List<ValidationResult>();
-            var result = Validator.TryValidateObject(obj, validationContext, validationResults, true);
-            if (!result)
-            {
-                throw new AggregateException(
-                    validationResults.Select(ex => new ValidationException(ex.ErrorMessage)
-                ));
             }
         }
     }

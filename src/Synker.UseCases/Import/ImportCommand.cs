@@ -44,6 +44,8 @@ namespace Synker.UseCases.Import
             // Check is external settings are newer.
             var latestBundle = await bundleFactory.OpenAsync(latestBundleInfo.Id, cancellationToken);
             var latestBundleUpdateDateTime = await profile.GetLatestBundleUpdateDateTimeAsync(latestBundle);
+            logger.LogTrace($"Latest local settings date: {latestLocalUpdateDateTime}", latestLocalUpdateDateTime);
+            logger.LogTrace($"Latest bundle settings date: {latestBundleUpdateDateTime}", latestBundleUpdateDateTime);
             if (latestLocalUpdateDateTime.HasValue && latestLocalUpdateDateTime >= latestBundleUpdateDateTime && !Force)
             {
                 logger.LogInformation("Skip import because current settings date " +
@@ -58,6 +60,11 @@ namespace Synker.UseCases.Import
                 var syncContext = new SyncContext();
                 foreach (ITarget target in profile.Targets)
                 {
+                    var targetValidationResults = Saritasa.Tools.Domain.ValidationErrors.CreateFromObjectValidation(target);
+                    if (targetValidationResults.HasErrors)
+                    {
+                        throw new Saritasa.Tools.Domain.Exceptions.ValidationException(targetValidationResults);
+                    }
                     await target.ImportAsync(
                         syncContext,
                         latestBundle.GetSettingsAsync(target.Id),

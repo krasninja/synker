@@ -15,6 +15,7 @@ namespace Synker.Infrastructure.Targets
 {
     /// <summary>
     /// Target processes files and directories.
+    /// The target name in profile file must be "add-files-to-bundle".
     /// </summary>
     public class AddFilesToBundleTarget : TargetBase, ITargetWithMonitor, IDisposable
     {
@@ -31,7 +32,7 @@ namespace Synker.Infrastructure.Targets
         /// Files or directories to export or import.
         /// </summary>
         [Required]
-        public IList<string> Files { get; } = new List<string>();
+        public IList<string> Files { get; set; } = new List<string>();
 
         /// <summary>
         /// Skip file export if it does not exist on target system.

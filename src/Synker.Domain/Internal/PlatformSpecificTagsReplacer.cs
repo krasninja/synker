@@ -11,10 +11,10 @@ namespace Synker.Domain.Internal
     {
         /// <summary>
         /// Replaces string like "win:path" to "path" if current platform is Windows.
-        /// If platform does not match returns empty string.
+        /// If platform does not match it returns empty string.
         /// </summary>
         /// <param name="tag">Tag to resolve</param>
-        /// <param name="resolvedPlatforms">Dictionary of resolve tag to make sure we always follow much
+        /// <param name="resolvedPlatforms">Dictionary of resolve tag to make sure we always follow more
         /// specific platform.</param>
         /// <returns>Resolved tag or null.</returns>
         public static string GetPlatformResolvedTag(string tag, ISet<string> resolvedPlatforms)
@@ -66,7 +66,7 @@ namespace Synker.Domain.Internal
                     !HasFormatPlatformTagId(resolvedPlatforms, Platforms.LinuxX86, name) &&
                     !HasFormatPlatformTagId(resolvedPlatforms, Platforms.LinuxX64, name))
                 {
-                    resolvedPlatforms.Add(FormatPlatformTagId(Platforms.Windows, name));
+                    resolvedPlatforms.Add(FormatPlatformTagId(Platforms.Linux, name));
                     return name;
                 }
                 if (platform == Platforms.LinuxX86 && RuntimeInformation.OSArchitecture == Architecture.X86)
