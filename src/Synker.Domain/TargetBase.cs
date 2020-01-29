@@ -24,7 +24,8 @@ namespace Synker.Domain
             CancellationToken cancellationToken);
 
         /// <inheritdoc />
-        public abstract Task<DateTime?> GetLastUpdateDateTimeAsync(CancellationToken cancellationToken);
+        public abstract Task<DateTime?> GetLastUpdateDateTimeAsync(SyncContext syncContext,
+            CancellationToken cancellationToken);
 
         /// <inheritdoc />
         public override string ToString() => Id;

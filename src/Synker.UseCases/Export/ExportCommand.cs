@@ -30,7 +30,15 @@ namespace Synker.UseCases.Export
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            logger.LogInformation($"Start export for profile {profile.Id} - {profile.Name}.");
+            logger.LogInformation($"Start export for profile {profile.Id} ({profile.Name}).");
+
+            // Validate profile targets.
+            var errors = profile.ValidateTargets();
+            if (errors.HasErrors)
+            {
+                logger.LogInformation($"Export for {profile.Id} skipped because of errors above.");
+                return false;
+            }
 
             // Get required data, validation.
             var latestLocalUpdateDateTime = await profile.GetLatestLocalUpdateDateTimeAsync();

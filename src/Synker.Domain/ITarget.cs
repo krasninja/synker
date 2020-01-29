@@ -11,7 +11,7 @@ namespace Synker.Domain
     public interface ITarget
     {
         /// <summary>
-        /// Target identifier or null.
+        /// Target identifier.
         /// </summary>
         string Id { get; }
 
@@ -40,8 +40,10 @@ namespace Synker.Domain
         /// <summary>
         /// Get last update date/time of settings in UTC format.
         /// </summary>
+        /// <param name="syncContext">Synchronization context.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>Last update date time or null if it is not available.</returns>
-        Task<DateTime?> GetLastUpdateDateTimeAsync(CancellationToken cancellationToken = default);
+        Task<DateTime?> GetLastUpdateDateTimeAsync(SyncContext syncContext,
+            CancellationToken cancellationToken = default);
     }
 }

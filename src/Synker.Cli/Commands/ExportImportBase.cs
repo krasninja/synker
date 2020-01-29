@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using McMaster.Extensions.CommandLineUtils;
+using Saritasa.Tools.Domain.Exceptions;
 using Synker.Domain;
 using Synker.Infrastructure.ProfileLoaders;
 
@@ -30,11 +31,16 @@ namespace Synker.Cli.Commands
                 return UserConfiguration.LoadFromFile(Config);
             }
 
-            return UserConfiguration.CreateEmpty(dict =>
+            if (Profiles.Any() && !string.IsNullOrWhiteSpace(Bundles))
             {
-                dict[UserConfiguration.ProfilesSourceKey] = string.Join(';', Profiles);
-                dict[UserConfiguration.BundlesDirectoryKey] = Bundles;
-            });
+                return UserConfiguration.CreateEmpty(dict =>
+                {
+                    dict[UserConfiguration.ProfilesSourceKey] = string.Join(';', Profiles);
+                    dict[UserConfiguration.BundlesDirectoryKey] = Bundles;
+                });
+            }
+
+            throw new DomainException("Invalid configuration.");
         }
 
         protected async Task<IList<Profile>> GetProfilesAsync(UserConfiguration config)

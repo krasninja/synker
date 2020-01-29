@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Saritasa.Tools.Domain;
 using YamlDotNet.Serialization;
 
 namespace Synker.Domain
@@ -52,12 +54,38 @@ namespace Synker.Domain
             }
         }
 
+        public ValidationErrors ValidateTargets()
+        {
+            foreach (ITarget target in Targets)
+            {
+                var targetValidationResults = ValidationErrors.CreateFromObjectValidation(target);
+                if (targetValidationResults.HasErrors)
+                {
+                    var error = targetValidationResults.First();
+                    logger.LogInformation($"[{target.Id}] {error.Key}: {error.Value.First()}.");
+                    return targetValidationResults;
+                }
+            }
+            return new ValidationErrors();
+        }
+
+        /// <summary>
+        /// Get date and time of latest settings update by application.
+        /// It goes thru all targets and gets latest date. If it cannot be determined the
+        /// null is returned.
+        /// </summary>
+        /// <returns>Date and time or null.</returns>
         public async Task<DateTime?> GetLatestLocalUpdateDateTimeAsync()
         {
             DateTime? latestSettingsDate = null;
+            var syncContext = new SyncContext();
             foreach (ITarget target in Targets)
             {
-                var date = await target.GetLastUpdateDateTimeAsync();
+                var date = await target.GetLastUpdateDateTimeAsync(syncContext);
+                if (syncContext.CancelProcessing)
+                {
+                    break;
+                }
                 if (!latestSettingsDate.HasValue || date > latestSettingsDate)
                 {
                     latestSettingsDate = date;

@@ -40,7 +40,8 @@ namespace Synker.Infrastructure.Targets
         }
 
         /// <inheritdoc />
-        public override Task<DateTime?> GetLastUpdateDateTimeAsync(CancellationToken cancellationToken)
+        public override Task<DateTime?> GetLastUpdateDateTimeAsync(SyncContext syncContext,
+            CancellationToken cancellationToken)
         {
             return Task.FromResult((DateTime?)null);
         }
