@@ -188,7 +188,7 @@ namespace Synker.Domain
                     string.Compare(tt.Name, typeName, StringComparison.OrdinalIgnoreCase) == 0);
                 if (targetType == null)
                 {
-                    throw new SettingsSyncException($"Cannot find action {targetTypeString}.");
+                    throw new SettingsSyncException($"Cannot find target {targetTypeString}.");
                 }
 
                 var target = deserializer.Deserialize(

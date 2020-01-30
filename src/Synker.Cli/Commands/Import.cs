@@ -9,13 +9,14 @@ namespace Synker.Cli.Commands
     /// Import settings to local applications.
     /// </summary>
     [Command(Name = "import", Description = "Import settings to local applications")]
-    internal class Import : ExportImportBase
+    internal class Import : ExportImportCommand
     {
         [Option("-f|--force", "Force import.", CommandOptionType.NoValue)]
         public bool Force { get; set; }
 
-        public async Task<int> OnExecuteAsync()
+        protected override async Task<int> OnExecuteAsync(CommandLineApplication app, IConsole console)
         {
+            await base.OnExecuteAsync(app, console);
             var config = GetUserConfiguration();
             var profiles = await GetProfilesAsync(config);
             var bundleFactory = new ZipBundleFactory(config.BundlesDirectory);

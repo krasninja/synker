@@ -1,18 +1,11 @@
-﻿using System;
+﻿using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using McMaster.Extensions.CommandLineUtils;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
-using NLog;
-using NLog.Config;
-using NLog.Extensions.Logging;
-using NLog.Targets;
 using Saritasa.Tools.Domain.Exceptions;
 using Synker.Cli.Commands;
 using Synker.Domain;
-using LogLevel = Microsoft.Extensions.Logging.LogLevel;
-using NullTarget = Synker.Infrastructure.Targets.NullTarget;
 
 namespace Synker.Cli
 {
@@ -21,14 +14,14 @@ namespace Synker.Cli
     /// </summary>
     [Command(Name = "synker-cli", Description = "Applications settings synchronization utility.",
         ThrowOnUnexpectedArgument = true)]
-    [Subcommand(typeof(Clean))]
-    [Subcommand(typeof(Export))]
-    [Subcommand(typeof(Import))]
-    [Subcommand(typeof(Sync))]
-    internal class Program
+    [VersionOptionFromMember("-v|--version", MemberName = nameof(GetVersion))]
+    [Subcommand(
+        typeof(Clean),
+        typeof(Export),
+        typeof(Import),
+        typeof(Sync))]
+    internal class Program : AppCommand
     {
-        private static ILogger<Program> logger = new NullLogger<Program>();
-
         /// <summary>
         /// Entry point.
         /// </summary>
@@ -36,57 +29,31 @@ namespace Synker.Cli
         /// <returns>Exit code.</returns>
         public static async Task<int> Main(string[] args)
         {
-            // Logging.
-            AppLogger.LoggerFactory = ConfigureLogging();
-            logger = AppLogger.Create<Program>();
-            logger.LogInformation($"Application startup at {DateTime.Now:yyyy-MM-dd}.");
-            ProfileFactory.AddTargetTypesFromAssembly(typeof(NullTarget).Assembly);
-
-            ValidationException.MessageFormatter = ValidationExceptionDelegates.GroupErrorsOrDefaultMessageFormatter;
-
             try
             {
-                return await CommandLineApplication.ExecuteAsync<Program>(args);
+                var app = new CommandLineApplication<Program>
+                {
+                    UsePagerForHelpText = false
+                };
+                app.Conventions.UseDefaultConventions();
+                return await app.ExecuteAsync(args);
             }
             catch (DomainException domainException)
             {
+                var logger = AppLogger.Create<Program>();
                 logger.LogError(domainException.Message);
                 return -2;
             }
         }
 
-        private Task<int> OnExecuteAsync(CommandLineApplication app, IConsole console)
+        protected override Task<int> OnExecuteAsync(CommandLineApplication app, IConsole console)
         {
-            app.ShowHelp(usePager: false);
+            app.ShowHelp();
             return Task.FromResult(1);
         }
 
-        private static ILoggerFactory ConfigureLogging()
-        {
-            // Config NLog.
-            var config = new LoggingConfiguration();
-            var consoleTarget = new ColoredConsoleTarget("console")
-            {
-                Layout =
-                    @"${date:format=HH\:mm\:ss} [${level:format=FirstCharacter}] ${logger:shortName=true}: ${message} ${exception}"
-            };
-            config.AddTarget(consoleTarget);
-            config.AddRuleForAllLevels(consoleTarget);
-            LogManager.Configuration = config;
-
-            // Setup integration with Extensions.Logging .
-            var serviceProvider = new ServiceCollection()
-                .AddLogging(builder =>
-                {
-                    builder.SetMinimumLevel(LogLevel.Trace);
-                    builder.AddNLog(new NLogProviderOptions
-                    {
-                        CaptureMessageTemplates = true,
-                        CaptureMessageProperties = true
-                    });
-                })
-                .BuildServiceProvider();
-            return serviceProvider.GetRequiredService<ILoggerFactory>();
-        }
+        private static string GetVersion()
+            => typeof(Program).Assembly
+                .GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
     }
 }

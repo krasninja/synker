@@ -8,7 +8,7 @@ using Synker.Infrastructure.ProfileLoaders;
 
 namespace Synker.Cli.Commands
 {
-    internal class ExportImportBase
+    internal class ExportImportCommand : AppCommand
     {
         [Option("-p|--profiles", "Application profiles directories.", CommandOptionType.MultipleValue)]
         public IReadOnlyList<string> Profiles { get; set; } = new string[] {};
@@ -24,7 +24,7 @@ namespace Synker.Cli.Commands
         [Option("-c|--config", "Configuration file.", CommandOptionType.SingleValue)]
         public string Config { get; set; }
 
-        public UserConfiguration GetUserConfiguration()
+        protected UserConfiguration GetUserConfiguration()
         {
             if (!Profiles.Any() && string.IsNullOrEmpty(Bundles))
             {

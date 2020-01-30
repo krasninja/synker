@@ -10,10 +10,11 @@ namespace Synker.Cli.Commands
     /// Sync (import and export).
     /// </summary>
     [Command(Name = "sync", Description = "Import and export settings")]
-    internal class Sync : ExportImportBase
+    internal class Sync : ExportImportCommand
     {
-        public async Task<int> OnExecuteAsync()
+        protected override async Task<int> OnExecuteAsync(CommandLineApplication app, IConsole console)
         {
+            await base.OnExecuteAsync(app, console);
             var config = GetUserConfiguration();
             var profiles = await GetProfilesAsync(config);
             var bundleFactory = new ZipBundleFactory(config.BundlesDirectory);

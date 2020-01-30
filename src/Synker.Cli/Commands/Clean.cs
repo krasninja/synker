@@ -10,14 +10,15 @@ namespace Synker.Cli.Commands
     /// Sync (import and export).
     /// </summary>
     [Command(Name = "clean", Description = "Clean bundles")]
-    internal class Clean : ExportImportBase
+    internal class Clean : ExportImportCommand
     {
         [Required]
         [Option("-md|--max-days", "Maximum days age for bundle.", CommandOptionType.SingleValue)]
         public int MaxDays { get; set; } = 14;
 
-        public async Task<int> OnExecuteAsync()
+        protected override async Task<int> OnExecuteAsync(CommandLineApplication app, IConsole console)
         {
+            await base.OnExecuteAsync(app, console);
             var config = GetUserConfiguration();
             var profiles = await GetProfilesAsync(config);
             var bundleFactory = new ZipBundleFactory(config.BundlesDirectory);
