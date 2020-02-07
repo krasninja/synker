@@ -9,8 +9,9 @@ using NLog.Extensions.Logging;
 using NLog.Targets;
 using Saritasa.Tools.Domain.Exceptions;
 using Synker.Domain;
+using Synker.Infrastructure.ProfileLoaders;
+using Synker.Infrastructure.Targets;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
-using NullTarget = Synker.Infrastructure.Targets.NullTarget;
 
 namespace Synker.Cli.Commands
 {
@@ -28,7 +29,6 @@ namespace Synker.Cli.Commands
             AppLogger.LoggerFactory = ConfigureLogging();
             var logger = AppLogger.Create<Program>();
             logger.LogTrace($"Application startup at {DateTime.Now:yyyy-MM-dd}.");
-            ProfileFactory.AddTargetTypesFromAssembly(typeof(NullTarget).Assembly);
 
             ValidationException.MessageFormatter = ValidationExceptionDelegates.GroupErrorsOrDefaultMessageFormatter;
             return Task.FromResult(0);

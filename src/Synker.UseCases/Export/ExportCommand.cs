@@ -93,13 +93,11 @@ namespace Synker.UseCases.Export
         }
 
         private async Task<int> ExportTargetsObjects(
-            IList<ITarget> targets,
+            IReadOnlyList<Target> targets,
             AsyncLazy<IBundle> lazyBundle,
             DateTime latestLocalUpdateDateTime,
             CancellationToken cancellationToken)
         {
-            var syncContext = new SyncContext();
-
             // Save targets.
             int settingIndex = 0;
             foreach (var target in targets)
@@ -109,16 +107,17 @@ namespace Synker.UseCases.Export
                 {
                     throw new Saritasa.Tools.Domain.Exceptions.ValidationException(targetValidationResults);
                 }
+                var notSatisfyCondition = await target.GetFirstNonSatisfyConditionAsync(cancellationToken);
+                if (notSatisfyCondition != null)
+                {
+                    logger.LogInformation($"Target {target.Id} skipped because of condition {notSatisfyCondition.GetType().Name}.");
+                    continue;
+                }
 
                 // Save target settings.
-                var settingsAsyncCollection = target.ExportAsync(syncContext);
+                var settingsAsyncCollection = target.ExportAsync();
                 await foreach (var setting in settingsAsyncCollection.WithCancellation(cancellationToken))
                 {
-                    if (syncContext.CancelProcessing)
-                    {
-                        logger.LogInformation($"Target {target.Id} requested cancel export processing.");
-                        continue;
-                    }
                     if (setting == Setting.EmptySetting)
                     {
                         continue;

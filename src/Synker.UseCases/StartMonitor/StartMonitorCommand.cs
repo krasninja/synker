@@ -82,7 +82,7 @@ namespace Synker.UseCases.StartMonitor
                 {
                     foreach (var target in profile.Targets)
                     {
-                        if (target is ITargetWithMonitor monitorTarget)
+                        if (target is IMonitorTarget monitorTarget)
                         {
                             monitorTarget.OnSettingsUpdate += (sender, t) => delayActionRunner.Queue(profile);
                         }

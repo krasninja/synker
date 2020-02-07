@@ -16,6 +16,7 @@ namespace Synker.Cli.Commands
         [Option("-md|--max-days", "Maximum days age for bundle.", CommandOptionType.SingleValue)]
         public int MaxDays { get; set; } = 14;
 
+        /// <inheritdoc />
         protected override async Task<int> OnExecuteAsync(CommandLineApplication app, IConsole console)
         {
             await base.OnExecuteAsync(app, console);

@@ -11,24 +11,23 @@ namespace Synker.Infrastructure.Targets
     /// Target that does nothing. For testing only.
     /// The target name in profile file must be "null".
     /// </summary>
-    public class NullTarget : TargetBase
+    public class NullSettingsTarget : Target
     {
         /// <inheritdoc />
-        public override IAsyncEnumerable<Setting> ExportAsync(SyncContext syncContext)
+        public override IAsyncEnumerable<Setting> ExportAsync()
         {
             return Setting.EmptySettings.ToAsyncEnumerable();
         }
 
         /// <inheritdoc />
-        public override Task ImportAsync(SyncContext syncContext, IAsyncEnumerable<Setting> settings,
+        public override Task ImportAsync(IAsyncEnumerable<Setting> settings,
             CancellationToken cancellationToken)
         {
             return Task.CompletedTask;
         }
 
         /// <inheritdoc />
-        public override Task<DateTime?> GetLastUpdateDateTimeAsync(SyncContext syncContext,
-            CancellationToken cancellationToken)
+        public override Task<DateTime?> GetUpdateDateTimeAsync(CancellationToken cancellationToken)
         {
             return Task.FromResult<DateTime?>(DateTime.Now);
         }

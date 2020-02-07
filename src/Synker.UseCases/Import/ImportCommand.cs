@@ -74,20 +74,17 @@ namespace Synker.UseCases.Import
             // Import by targets.
             try
             {
-                var syncContext = new SyncContext();
-
-                foreach (ITarget target in profile.Targets)
+                foreach (var target in profile.Targets)
                 {
+                    var notSatisfyCondition = await target.GetFirstNonSatisfyConditionAsync();
+                    if (notSatisfyCondition != null)
+                    {
+                        logger.LogInformation($"Target \"{target.Id}\" skipped because of condition {notSatisfyCondition.GetType().Name}.");
+                        continue;
+                    }
                     await target.ImportAsync(
-                        syncContext,
                         latestBundle.GetSettingsAsync(target.Id),
                         cancellationToken);
-
-                    if (syncContext.CancelProcessing)
-                    {
-                        logger.LogInformation($"Target {target.Id} requested cancel import process.");
-                        return false;
-                    }
                 }
             }
             finally

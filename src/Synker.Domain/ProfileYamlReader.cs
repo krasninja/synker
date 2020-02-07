@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -16,28 +15,28 @@ using YamlDotNet.Serialization.NamingConventions;
 namespace Synker.Domain
 {
     /// <summary>
-    /// Profiles factory methods.
+    /// Read profiles from YAML configuration.
     /// </summary>
-    public static class ProfileFactory
+    public class ProfileYamlReader
     {
         private const string TargetsKey = "targets";
+        private const string ConditionsKey = "conditions";
 
-        private static readonly List<Type> targetTypes = new List<Type>();
+        private readonly ICollection<Type> profileElementTypes;
+        private readonly IProfileLoader profileLoader;
 
         private static readonly IDeserializer deserializer = new DeserializerBuilder()
             .WithNamingConvention(HyphenatedNamingConvention.Instance)
             .IgnoreUnmatchedProperties()
             .Build();
 
-        private static readonly ILogger logger = AppLogger.Create(typeof(ProfileFactory));
+        private static readonly ILogger logger = AppLogger.Create(typeof(ProfileYamlReader));
 
-        /// <summary>
-        /// Add target type to resolve.
-        /// </summary>
-        /// <typeparam name="T">Target type.</typeparam>
-        public static void AddTargetType<T>() where T : ITarget
+        public ProfileYamlReader(IProfileLoader profileLoader, ICollection<Type> profileElementTypes)
         {
-            targetTypes.Add(typeof(T));
+            this.profileElementTypes = profileElementTypes ??
+                                       throw new ArgumentNullException(nameof(profileElementTypes));
+            this.profileLoader = profileLoader ?? throw new ArgumentNullException(nameof(profileLoader));
         }
 
         /// <summary>
@@ -45,43 +44,37 @@ namespace Synker.Domain
         /// </summary>
         /// <param name="assembly">Assembly.</param>
         /// <returns>Number of imported types.</returns>
-        public static int AddTargetTypesFromAssembly(Assembly assembly)
+        public static ICollection<Type> GetProfileElementsTypesFromAssembly(Assembly assembly)
         {
             if (assembly == null)
             {
                 throw new ArgumentNullException(nameof(assembly));
             }
 
-            var types = assembly
+            return assembly
                 .GetTypes()
-                .Where(p => typeof(ITarget).IsAssignableFrom(p))
+                .Where(p => p.IsClass)
+                .Where(p => typeof(Target).IsAssignableFrom(p) ||
+                            typeof(Condition).IsAssignableFrom(p))
                 .ToList();
-            targetTypes.AddRange(types);
-            return types.Count;
         }
 
         /// <summary>
         /// Load profiles.
         /// </summary>
-        /// <param name="profileLoader">Profiles loader..</param>
         /// <param name="excludePatterns">Patterns to exclude. None by default.</param>
         /// <returns>Profiles.</returns>
-        public static async Task<IList<Profile>> LoadAsync(
-            IProfileLoader profileLoader,
+        public async Task<IList<Profile>> LoadAsync(
             IEnumerable<string> excludePatterns = null)
         {
             if (profileLoader == null)
             {
                 throw new ArgumentNullException(nameof(profileLoader));
             }
-            if (excludePatterns == null || !excludePatterns.Any())
-            {
-                excludePatterns = Enumerable.Empty<string>();
-            }
 
             Stream stream = null;
             var profiles = new List<Profile>();
-            var excludePatternsArray = excludePatterns.ToArray();
+            var excludePatternsArray = excludePatterns != null ? excludePatterns.ToArray() : new string[] {};
             while ((stream = (await profileLoader.GetNextAsync())) != null)
             {
                 var streamProfiles = LoadFromStream(stream);
@@ -100,7 +93,7 @@ namespace Synker.Domain
         /// <param name="stream">Text stream.</param>
         /// <returns>Loaded profiles.</returns>
         /// <exception cref="SettingsSyncException">Stream cannot be parsed.</exception>
-        public static IList<Profile> LoadFromStream(Stream stream)
+        private IList<Profile> LoadFromStream(Stream stream)
         {
             if (stream == null)
             {
@@ -119,21 +112,36 @@ namespace Synker.Domain
             var yamlProfiles = yaml.Documents[0].RootNode is YamlSequenceNode yamlProfilesSeq ?
                 yamlProfilesSeq.Children :
                 new List<YamlNode> { yaml.Documents[0].RootNode };
-            var profiles = new List<Profile>(yamlProfiles.Count());
+            var profiles = new List<Profile>(yamlProfiles.Count);
             foreach (YamlMappingNode yamlProfile in yamlProfiles)
             {
                 var profile = deserializer.Deserialize<Profile>(
                     new EventStreamParserAdapter(
                         YamlNodeToEventStreamConverter.ConvertToEventStream(yamlProfile)
                     ));
-                var yamlActions = yamlProfile.Children[new YamlScalarNode(TargetsKey)];
-                if (yamlActions == null)
+
+                // Parse targets.
+                var yamlTargets = yamlProfile.Children[new YamlScalarNode(TargetsKey)] as YamlSequenceNode;
+                if (yamlTargets == null)
                 {
                     throw new SettingsSyncException("Profile stream does not contain targets.");
                 }
-                profile.AddTargets(ParseActions(yamlActions));
-                FillMissedActionsIds(profile.Targets);
-                ReplaceTokensForActions(profile.Targets);
+                foreach (YamlMappingNode yamlTargetNode in yamlTargets.Children)
+                {
+                    var target = ParseElement<Target>(yamlTargetNode, "Target");
+                    target = profile.AddTarget(target);
+
+                    // Parse conditions.
+                    var yamlConditions = yamlTargetNode.Children[new YamlScalarNode(ConditionsKey)] as YamlSequenceNode;
+                    if (yamlConditions != null)
+                    {
+                        foreach (YamlMappingNode yamlCondition in yamlConditions)
+                        {
+                            var condition = ParseElement<Condition>(yamlCondition, typePostfix: "Condition");
+                            target.AddCondition(condition);
+                        }
+                    }
+                }
 
                 // Validate profile.
                 var profileValidationResults = Saritasa.Tools.Domain.ValidationErrors.CreateFromObjectValidation(profile);
@@ -142,7 +150,7 @@ namespace Synker.Domain
                     throw new Saritasa.Tools.Domain.Exceptions.ValidationException(profileValidationResults);
                 }
 
-                logger.LogInformation($"Loaded profile {profile.Id} with {profile.Targets.Count} action(-s).");
+                logger.LogInformation($"Loaded profile {profile.Id} with {profile.Targets.Count} target(-s).");
                 profiles.Add(profile);
             }
 
@@ -154,7 +162,7 @@ namespace Synker.Domain
         /// </summary>
         /// <param name="file">File name.</param>
         /// <returns>Profiles.</returns>
-        public static IList<Profile> LoadFromFile(string file)
+        public IList<Profile> LoadFromFile(string file)
         {
             if (file == null)
             {
@@ -166,43 +174,33 @@ namespace Synker.Domain
             return LoadFromStream(fileStream);
         }
 
-        private static IList<ITarget> ParseActions(YamlNode node)
+        private T ParseElement<T>(YamlMappingNode yamlElementNode, string typePostfix = null) where T : class
         {
-            var actions = new List<ITarget>();
-            var yamlActions = node as YamlSequenceNode;
-            if (yamlActions == null)
+            var yamlType = yamlElementNode.Children[new YamlScalarNode("type")] as YamlScalarNode;
+            if (yamlType == null)
             {
-                throw new SettingsSyncException("Targets must be a sequence.");
+                throw new SettingsSyncException("Element does not contain \"type\"");
             }
 
-            foreach (YamlMappingNode targetNode in yamlActions.Children)
+            var typeName = yamlType.Value.Replace("-", string.Empty) + (typePostfix ?? string.Empty);
+            var elementType = profileElementTypes.FirstOrDefault(t =>
+                string.Compare(t.Name, typeName, StringComparison.OrdinalIgnoreCase) == 0);
+            if (elementType == null)
             {
-                var targetTypeString = targetNode.Children[new YamlScalarNode("type")] as YamlScalarNode;
-                if (targetTypeString == null)
-                {
-                    continue;
-                }
-
-                var typeName = targetTypeString.Value.Replace("-", string.Empty) + "Target";
-                var targetType = targetTypes.FirstOrDefault(tt =>
-                    string.Compare(tt.Name, typeName, StringComparison.OrdinalIgnoreCase) == 0);
-                if (targetType == null)
-                {
-                    throw new SettingsSyncException($"Cannot find target {targetTypeString}.");
-                }
-
-                var target = deserializer.Deserialize(
-                    new EventStreamParserAdapter(
-                        YamlNodeToEventStreamConverter.ConvertToEventStream(targetNode)
-                    ),
-                    targetType) as ITarget;
-                if (target != null)
-                {
-                    actions.Add(target);
-                }
+                throw new SettingsSyncException($"Cannot find target {yamlType}.");
             }
 
-            return actions;
+            var element = deserializer.Deserialize(
+                new EventStreamParserAdapter(
+                    YamlNodeToEventStreamConverter.ConvertToEventStream(yamlElementNode)
+                ),
+                elementType) as T;
+            if (element == null)
+            {
+                throw new SettingsSyncException($"Cannot deserialize {yamlType}.");
+            }
+            ReplaceTokensForObject(element);
+            return element;
         }
 
         private static bool MatchAnyWildcardPattern(string pattern, IEnumerable<string> patternsExclude)
@@ -212,33 +210,13 @@ namespace Synker.Domain
                 .Any(pi => Regex.IsMatch(pattern, pi, RegexOptions.IgnoreCase));
         }
 
-        private static void FillMissedActionsIds(IList<ITarget> targets)
-        {
-            for (int i = 0; i < targets.Count; i++)
-            {
-                if (string.IsNullOrEmpty(targets[i].Id))
-                {
-                    ((TargetBase) targets[i]).Id = i.ToString("000");
-                }
-            }
-        }
-
-        private static void ReplaceTokensForActions(IList<ITarget> targets)
-        {
-            foreach (ITarget target in targets)
-            {
-                ReplaceTokensForObject(target);
-            }
-        }
-
         private static void ReplaceTokensForObject(object obj)
         {
             foreach (var pi in obj.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
             {
                 if (!pi.CanRead || !pi.CanWrite ||
-                    pi.Name == nameof(ITarget.Id) ||
-                    pi.Name == nameof(Profile.Name) ||
-                    pi.Name == nameof(ITarget.Enabled))
+                    pi.Name == nameof(Target.Id) ||
+                    pi.Name == nameof(Target.Conditions))
                 {
                     continue;
                 }

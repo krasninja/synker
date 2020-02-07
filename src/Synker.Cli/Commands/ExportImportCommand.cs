@@ -5,6 +5,7 @@ using McMaster.Extensions.CommandLineUtils;
 using Saritasa.Tools.Domain.Exceptions;
 using Synker.Domain;
 using Synker.Infrastructure.ProfileLoaders;
+using Synker.Infrastructure.Targets;
 
 namespace Synker.Cli.Commands
 {
@@ -46,7 +47,9 @@ namespace Synker.Cli.Commands
         protected async Task<IList<Profile>> GetProfilesAsync(UserConfiguration config)
         {
             var filesProfileLoader = new FilesProfileLoader(config.ProfilesSource);
-            return await ProfileFactory.LoadAsync(filesProfileLoader, ProfilesExclude);
+            var profileYamlReader = new ProfileYamlReader(filesProfileLoader,
+                ProfileYamlReader.GetProfileElementsTypesFromAssembly(typeof(NullSettingsTarget).Assembly));
+            return await profileYamlReader.LoadAsync();
         }
     }
 }

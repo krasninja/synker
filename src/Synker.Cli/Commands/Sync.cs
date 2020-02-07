@@ -12,6 +12,7 @@ namespace Synker.Cli.Commands
     [Command(Name = "sync", Description = "Import and export settings")]
     internal class Sync : ExportImportCommand
     {
+        /// <inheritdoc />
         protected override async Task<int> OnExecuteAsync(CommandLineApplication app, IConsole console)
         {
             await base.OnExecuteAsync(app, console);

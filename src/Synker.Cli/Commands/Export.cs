@@ -14,6 +14,7 @@ namespace Synker.Cli.Commands
         [Option("-f|--force", "Force export.", CommandOptionType.NoValue)]
         public bool Force { get; set; } = false;
 
+        /// <inheritdoc />
         protected override async Task<int> OnExecuteAsync(CommandLineApplication app, IConsole console)
         {
             await base.OnExecuteAsync(app, console);

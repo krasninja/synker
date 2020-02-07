@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -34,29 +35,53 @@ namespace Synker.Domain
         /// </summary>
         public string Description { get; set; }
 
+        private readonly List<Target> targets = new List<Target>();
+
         /// <summary>
-        /// Target to be performed on export and import.
+        /// Targets to be performed on export and import.
         /// </summary>
         [YamlIgnore]
-        public IList<ITarget> Targets { get; } = new List<ITarget>();
+        public IReadOnlyList<Target> Targets => targets.AsReadOnly();
 
         private static readonly ILogger<Profile> logger = AppLogger.Create<Profile>();
+        private int targetIndex = 0;
 
         /// <summary>
-        /// Add multiple targets.
+        /// Add target.
         /// </summary>
-        /// <param name="targets">Targets to add.</param>
-        public void AddTargets(IList<ITarget> targets)
+        /// <param name="id">Target identifier within profile.</param>
+        /// <param name="target">Target to add.</param>
+        public Target AddTarget(string id, Target target)
         {
-            foreach (ITarget target in targets)
+            if (string.IsNullOrEmpty(id))
             {
-                this.Targets.Add(target);
+                throw new ArgumentNullException(nameof(id));
             }
+            if (target == null)
+            {
+                throw new ArgumentNullException(nameof(target));
+            }
+            this.targets.Add(target);
+            return target;
+        }
+
+        /// <summary>
+        /// Add target. The target id will be auto-assigned.
+        /// </summary>
+        /// <param name="target">Target to add.</param>
+        public Target AddTarget(Target target)
+        {
+            if (string.IsNullOrEmpty(target.Id))
+            {
+                target.Id = (targetIndex++).ToString("000");
+            }
+            this.targets.Add(target);
+            return target;
         }
 
         public ValidationErrors ValidateTargets()
         {
-            foreach (ITarget target in Targets)
+            foreach (var target in Targets)
             {
                 var targetValidationResults = ValidationErrors.CreateFromObjectValidation(target);
                 if (targetValidationResults.HasErrors)
@@ -78,14 +103,14 @@ namespace Synker.Domain
         public async Task<DateTime?> GetLatestLocalUpdateDateTimeAsync()
         {
             DateTime? latestSettingsDate = null;
-            var syncContext = new SyncContext();
-            foreach (ITarget target in Targets)
+            foreach (var target in Targets)
             {
-                var date = await target.GetLastUpdateDateTimeAsync(syncContext);
-                if (syncContext.CancelProcessing)
+                var condition = await target.GetFirstNonSatisfyConditionAsync();
+                if (condition != null)
                 {
-                    break;
+                    continue;
                 }
+                var date = await target.GetUpdateDateTimeAsync();
                 if (!latestSettingsDate.HasValue || date > latestSettingsDate)
                 {
                     latestSettingsDate = date;
@@ -102,8 +127,13 @@ namespace Synker.Domain
             }
 
             DateTime? latestBundleDate = null;
-            foreach (ITarget target in this.Targets)
+            foreach (var target in this.Targets)
             {
+                var condition = await target.GetFirstNonSatisfyConditionAsync();
+                if (condition != null)
+                {
+                    continue;
+                }
                 var metadata = await bundle.GetMetadataAsync(target.Id);
                 if (metadata.ContainsKey(Key_LastUpdate))
                 {
@@ -130,7 +160,7 @@ namespace Synker.Domain
         {
             foreach (var target in Targets)
             {
-                if (target is ITargetWithMonitor targetMonitor)
+                if (target is IMonitorTarget targetMonitor)
                 {
                     targetMonitor.StartMonitor();
                 }
@@ -144,7 +174,7 @@ namespace Synker.Domain
         {
             foreach (var target in Targets)
             {
-                if (target is ITargetWithMonitor targetMonitor)
+                if (target is IMonitorTarget targetMonitor)
                 {
                     targetMonitor.StopMonitor();
                 }

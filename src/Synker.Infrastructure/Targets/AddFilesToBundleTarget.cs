@@ -17,7 +17,7 @@ namespace Synker.Infrastructure.Targets
     /// Target processes files and directories.
     /// The target name in profile file must be "add-files-to-bundle".
     /// </summary>
-    public class AddFilesToBundleTarget : TargetBase, ITargetWithMonitor, IDisposable
+    public class AddFilesToBundleTarget : Target, IMonitorTarget, IDisposable
     {
         private const string Key_LastUpdate = "last-update";
         private const string Key_Name = "name";
@@ -58,7 +58,7 @@ namespace Synker.Infrastructure.Targets
         }
 
         /// <inheritdoc />
-        public override async IAsyncEnumerable<Setting> ExportAsync(SyncContext syncContext)
+        public override async IAsyncEnumerable<Setting> ExportAsync()
         {
             // Export file by file.
             foreach (var file in GetAllFiles())
@@ -182,7 +182,6 @@ namespace Synker.Infrastructure.Targets
 
         /// <inheritdoc />
         public override async Task ImportAsync(
-            SyncContext syncContext,
             IAsyncEnumerable<Setting> settings,
             CancellationToken cancellationToken)
         {
@@ -212,8 +211,7 @@ namespace Synker.Infrastructure.Targets
         }
 
         /// <inheritdoc />
-        public override Task<DateTime?> GetLastUpdateDateTimeAsync(SyncContext syncContext,
-            CancellationToken cancellationToken)
+        public override Task<DateTime?> GetUpdateDateTimeAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -321,10 +319,10 @@ namespace Synker.Infrastructure.Targets
 
         private static string NormalizePath(string path) => path.Replace('\\', '/');
 
-        #region ITargetWithMonitor
+        #region IMonitorTarget
 
         /// <inheritdoc />
-        public event EventHandler<ITarget> OnSettingsUpdate;
+        public event EventHandler<Target> OnSettingsUpdate;
 
         /// <inheritdoc />
         public void StartMonitor()

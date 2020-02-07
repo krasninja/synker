@@ -6,13 +6,13 @@ namespace Synker.Domain
     /// Target that supports monitoring. It allows automatically
     /// export settings when they are changed.
     /// </summary>
-    public interface ITargetWithMonitor
+    public interface IMonitorTarget
     {
         /// <summary>
         /// The event is executing on settings update. The external
         /// app subscribes on this event.
         /// </summary>
-        event EventHandler<ITarget> OnSettingsUpdate;
+        event EventHandler<Target> OnSettingsUpdate;
 
         /// <summary>
         /// Start monitoring for target.

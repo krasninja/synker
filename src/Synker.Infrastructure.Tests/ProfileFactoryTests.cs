@@ -1,8 +1,8 @@
-using System.IO;
 using System.Linq;
-using System.Text;
+using System.Threading.Tasks;
 using Synker.Infrastructure.Targets;
 using Synker.Domain;
+using Synker.Infrastructure.ProfileLoaders;
 using Xunit;
 
 namespace Synker.Infrastructure.Tests
@@ -13,7 +13,7 @@ namespace Synker.Infrastructure.Tests
     public class ProfileFactoryTests
     {
         [Fact]
-        public void LoadFromStream_NullTargetProfile_ParseProfile()
+        public async Task LoadFromStream_NullTargetProfile_ParseProfile()
         {
             // Arrange
             var profileText = @"
@@ -26,21 +26,22 @@ targets:
 ";
 
             // Act
-            ProfileFactory.AddTargetTypesFromAssembly(typeof(NullTarget).Assembly);
-            var profile = ProfileFactory.LoadFromStream(new MemoryStream(Encoding.UTF8.GetBytes(profileText))).First();
+            var profileYamlReader = new ProfileYamlReader(new StreamProfileLoader(profileText),
+                ProfileYamlReader.GetProfileElementsTypesFromAssembly(typeof(NullSettingsTarget).Assembly));
+            var profile = (await profileYamlReader.LoadAsync()).First();
 
             // Assert
             Assert.NotNull(profile);
             Assert.Equal("test", profile.Id);
             Assert.Equal("Test", profile.Name);
             Assert.Equal("test test", profile.Description);
-            Assert.Equal(1, profile.Targets.Count);
-            Assert.IsType<NullTarget>(profile.Targets[0]);
+            Assert.Single(profile.Targets);
+            Assert.IsType<NullSettingsTarget>(profile.Targets[0]);
             Assert.Equal("main", profile.Targets[0].Id);
         }
 
         [Fact]
-        public void LoadFromStream_FilesTargetProfileWith_ParseProfilePatternsCorrect()
+        public async Task LoadFromStream_FilesTargetProfileWith_ParseProfilePatternsCorrect()
         {
             // Arrange
             var profileText = @"
@@ -58,12 +59,13 @@ targets:
 ";
 
             // Act
-            ProfileFactory.AddTargetTypesFromAssembly(typeof(NullTarget).Assembly);
-            var profile = ProfileFactory.LoadFromStream(new MemoryStream(Encoding.UTF8.GetBytes(profileText))).First();
+            var profileYamlReader = new ProfileYamlReader(new StreamProfileLoader(profileText),
+                ProfileYamlReader.GetProfileElementsTypesFromAssembly(typeof(NullSettingsTarget).Assembly));
+            var profile = (await profileYamlReader.LoadAsync()).First();
 
             // Assert
             Assert.NotNull(profile);
-            Assert.Equal(1, profile.Targets.Count);
+            Assert.Single(profile.Targets);
             var filesTarget = profile.Targets[0] as AddFilesToBundleTarget;
             Assert.Equal(new[] { "*.sqlite3", "*.xml" }, filesTarget.Files);
         }

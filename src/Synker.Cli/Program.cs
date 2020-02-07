@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Saritasa.Tools.Domain.Exceptions;
 using Synker.Cli.Commands;
 using Synker.Domain;
+using Monitor = Synker.Cli.Commands.Monitor;
 
 namespace Synker.Cli
 {
@@ -19,7 +20,8 @@ namespace Synker.Cli
         typeof(Clean),
         typeof(Export),
         typeof(Import),
-        typeof(Sync))]
+        typeof(Sync),
+        typeof(Monitor))]
     internal class Program : AppCommand
     {
         /// <summary>
