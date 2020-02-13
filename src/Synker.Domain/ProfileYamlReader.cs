@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -112,6 +113,7 @@ namespace Synker.Domain
             var yamlProfiles = yaml.Documents[0].RootNode is YamlSequenceNode yamlProfilesSeq ?
                 yamlProfilesSeq.Children :
                 new List<YamlNode> { yaml.Documents[0].RootNode };
+            yamlProfiles = LoadIncludes(yamlProfiles);
             var profiles = new List<Profile>(yamlProfiles.Count);
             foreach (YamlMappingNode yamlProfile in yamlProfiles)
             {
@@ -172,6 +174,33 @@ namespace Synker.Domain
             logger.LogInformation($"Start loading profiles from file {file}.");
             using var fileStream = File.Open(file, FileMode.Open, FileAccess.Read, FileShare.None);
             return LoadFromStream(fileStream);
+        }
+
+        private IList<YamlNode> LoadIncludes(IList<YamlNode> yamlNodes)
+        {
+            var list = new List<YamlNode>();
+            foreach (YamlNode yamlNode in yamlNodes)
+            {
+                if (yamlNode is YamlScalarNode yamlScalarNode && yamlScalarNode.Tag == "!include:")
+                {
+                    var contentDownloader = new ContentDownloader();
+                    var content = contentDownloader.LoadAsync(yamlScalarNode.Value).GetAwaiter().GetResult();
+                    var yaml = new YamlStream();
+                    yaml.Load(new StringReader(content));
+                    var yamlProfiles = yaml.Documents[0].RootNode is YamlSequenceNode yamlProfilesSeq ?
+                        yamlProfilesSeq.Children :
+                        new List<YamlNode> { yaml.Documents[0].RootNode };
+                    foreach (YamlNode allNode in yamlProfiles)
+                    {
+                        list.Add(allNode);
+                    }
+                }
+                else
+                {
+                    list.Add(yamlNode);
+                }
+            }
+            return list;
         }
 
         private T ParseElement<T>(YamlMappingNode yamlElementNode, string typePostfix = null) where T : class
