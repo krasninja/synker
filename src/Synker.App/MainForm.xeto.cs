@@ -14,9 +14,9 @@ using NLog.Targets;
 using Synker.Infrastructure.Bundles;
 using Synker.Infrastructure.ProfileLoaders;
 using Synker.Domain;
+using Synker.Infrastructure.Targets;
 using Synker.UseCases.StartMonitor;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
-using NullTarget = Synker.Infrastructure.Targets.NullTarget;
 
 namespace Synker.App
 {
@@ -171,10 +171,11 @@ namespace Synker.App
                 ConfigureConsoleLogging();
 
             // Setup profiles and start monitoring.
-            ProfileFactory.AddTargetTypesFromAssembly(typeof(NullTarget).Assembly);
             var filesProfileLoader = new FilesProfileLoader(configData.ProfilesSource);
+            var profileYamlReader = new ProfileYamlReader(filesProfileLoader,
+                ProfileYamlReader.GetProfileElementsTypesFromAssembly(typeof(NullSettingsTarget).Assembly));
             bundleFactory = new ZipBundleFactory(configData.BundlesDirectory);
-            profiles = await ProfileFactory.LoadAsync(filesProfileLoader);
+            profiles = await profileYamlReader.LoadAsync();
             var startMonitorCommand = new StartMonitorCommand(profiles, bundleFactory)
             {
                 DisableExport = configData.DisableExport,

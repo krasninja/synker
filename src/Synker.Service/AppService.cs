@@ -14,6 +14,7 @@ using Saritasa.Tools.Common.Utils;
 using Synker.Infrastructure.Bundles;
 using Synker.Infrastructure.ProfileLoaders;
 using Synker.Domain;
+using Synker.Infrastructure.Targets;
 using Synker.UseCases.StartMonitor;
 using Synker.UseCases.StopMonitor;
 using Synker.Web;
@@ -21,7 +22,6 @@ using Topshelf;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
-using NullTarget = Synker.Infrastructure.Targets.NullTarget;
 
 namespace Synker.Service
 {
@@ -87,10 +87,11 @@ namespace Synker.Service
             }
 
             // Setup profiles and start monitoring.
-            ProfileFactory.AddTargetTypesFromAssembly(typeof(NullTarget).Assembly);
             var filesProfileLoader = new FilesProfileLoader(configData[ProfilesSourceKey]);
+            var profileYamlReader = new ProfileYamlReader(filesProfileLoader,
+                ProfileYamlReader.GetProfileElementsTypesFromAssembly(typeof(NullSettingsTarget).Assembly));
             bundleFactory = new ZipBundleFactory(configData[BundlesDirectoryKey]);
-            profiles = await ProfileFactory.LoadAsync(filesProfileLoader);
+            profiles = await profileYamlReader.LoadAsync();
             var startMonitorCommand = new StartMonitorCommand(profiles, bundleFactory)
             {
                 DisableExport = !StringUtils.ParseOrDefault(
