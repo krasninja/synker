@@ -9,6 +9,7 @@ namespace Synker.Domain
     {
         /// <summary>
         /// The event is executing on receiving new settings.
+        /// The argument is profile identifier.
         /// </summary>
         event EventHandler<string> OnSettingsUpdate;
 

@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Synker.App.Abstract
+namespace Synker.Desktop.Abstract
 {
     /// <summary>
     /// The view model with initial async data loading feature.

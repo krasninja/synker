@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Saritasa.Tools.Domain.Exceptions;
 using Synker.Domain;
 using Synker.UseCases.Common;
 
@@ -11,7 +12,7 @@ namespace Synker.UseCases.Export
     /// <summary>
     /// Command to export settings.
     /// </summary>
-    public class ExportCommand : ICommand<bool>
+    public class ExportCommand : ICommand<ExportResult>
     {
         public bool Force { get; set; }
 
@@ -26,7 +27,7 @@ namespace Synker.UseCases.Export
         }
 
         /// <inheritdoc />
-        public async Task<bool> ExecuteAsync(CancellationToken cancellationToken = default)
+        public async Task<ExportResult> ExecuteAsync(CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -37,7 +38,7 @@ namespace Synker.UseCases.Export
             if (errors.HasErrors)
             {
                 logger.LogInformation($"Export for {profile.Id} skipped because of errors above.");
-                return false;
+                throw new ValidationException(errors);
             }
 
             // Get required data, validation.
@@ -45,7 +46,7 @@ namespace Synker.UseCases.Export
             if (!latestLocalUpdateDateTime.HasValue)
             {
                 logger.LogWarning($"Cannot get latest local settings update date for profile {profile.Id}, skipping.");
-                return false;
+                throw new ValidationException(errors);
             }
 
             // We allow export only if local settings date is higher than bundle date.
@@ -59,7 +60,7 @@ namespace Synker.UseCases.Export
                     logger.LogInformation("Skip export because current settings date " +
                                           $"{latestLocalUpdateDateTime} equal " +
                                           $"or older than date {latestBundleUpdateDateTime} of bundle {bundle.Id}.");
-                    return false;
+                    return ExportResult.SettingsDateOlderThanBundleDate;
                 }
             }
 
@@ -89,7 +90,7 @@ namespace Synker.UseCases.Export
             {
                 lazyBundle.Dispose();
             }
-            return true;
+            return ExportResult.Success;
         }
 
         private async Task<int> ExportTargetsObjects(

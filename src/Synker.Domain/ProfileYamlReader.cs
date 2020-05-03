@@ -134,11 +134,11 @@ namespace Synker.Domain
                     target = profile.AddTarget(target);
 
                     // Parse conditions.
-                    var yamlConditions = yamlTargetNode.Children[new YamlScalarNode(ConditionsKey)] as YamlSequenceNode;
-                    if (yamlConditions != null)
+                    if (yamlTargetNode.Children.TryGetValue(new YamlScalarNode(ConditionsKey), out YamlNode yamlConditions))
                     {
-                        foreach (YamlMappingNode yamlCondition in yamlConditions)
+                        foreach (var yamlNode in (YamlSequenceNode) yamlConditions)
                         {
+                            var yamlCondition = (YamlMappingNode) yamlNode;
                             var condition = ParseElement<Condition>(yamlCondition, typePostfix: "Condition");
                             target.AddCondition(condition);
                         }
@@ -208,7 +208,7 @@ namespace Synker.Domain
             var yamlType = yamlElementNode.Children[new YamlScalarNode("type")] as YamlScalarNode;
             if (yamlType == null)
             {
-                throw new SettingsSyncException("Element does not contain \"type\"");
+                throw new SettingsSyncException("Element does not contain \"type\".");
             }
 
             var typeName = yamlType.Value.Replace("-", string.Empty) + (typePostfix ?? string.Empty);

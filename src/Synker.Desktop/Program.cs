@@ -1,22 +1,61 @@
-﻿using Avalonia;
-using Avalonia.Logging.Serilog;
-using Avalonia.ReactiveUI;
+﻿using System;
+using System.Reflection;
+using Eto;
+using Eto.Forms;
+using UnhandledExceptionEventArgs = Eto.UnhandledExceptionEventArgs;
 
 namespace Synker.Desktop
 {
-    class Program
+    /// <summary>
+    /// Program entry point.
+    /// </summary>
+    internal class Program
     {
-        // Initialization code. Don't use any Avalonia, third-party APIs or any
-        // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
-        // yet and stuff might break.
-        public static void Main(string[] args) => BuildAvaloniaApp()
-            .StartWithClassicDesktopLifetime(args);
+        /// <summary>
+        /// Entry point.
+        /// </summary>
+        /// <param name="args">Startup arguments.</param>
+        /// <returns>Exit code.</returns>
+        [STAThread]
+        private static int Main(string[] args)
+        {
+            var app = new Application(Platform.Detect);
+            app.UnhandledException += InstanceOnUnhandledException;
+            AppDomain.CurrentDomain.UnhandledException += DomainUnhandledException;
+            app.Run(new MainForm());
+            return 0;
+        }
 
-        // Avalonia configuration, don't remove; also used by visual designer.
-        public static AppBuilder BuildAvaloniaApp()
-            => AppBuilder.Configure<App>()
-                .UsePlatformDetect()
-                .LogToDebug()
-                .UseReactiveUI();
+        private static void InstanceOnUnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            ShowException(e.ExceptionObject as Exception);
+        }
+
+        private static void DomainUnhandledException(object sender, System.UnhandledExceptionEventArgs e)
+        {
+            ShowException(e.ExceptionObject as Exception);
+        }
+
+        /// <summary>
+        /// Show exception in message box.
+        /// </summary>
+        /// <param name="ex">Exception to show.</param>
+        private static void ShowException(Exception ex)
+        {
+            if (ex == null)
+            {
+                return;
+            }
+
+            if (ex is TargetInvocationException tiex && tiex.InnerException != null)
+            {
+                MessageBox.Show(tiex.InnerException.Message, "Error", MessageBoxButtons.OK, MessageBoxType.Error);
+            }
+            else
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxType.Error);
+            }
+            Application.Instance.Quit();
+        }
     }
 }

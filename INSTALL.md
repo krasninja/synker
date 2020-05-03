@@ -28,6 +28,7 @@ Use following command to publish the app, it will create framework independed ex
 
 ```
 dotnet publish ./src/Synker.Cli -r linux-x64 -c Release /p:PublishSingleFile=true /p:PublishTrimmed=true -o ./publish
+dotnet publish ./src/Synker.Desktop -r win-x64 -c Release /p:PublishSingleFile=true /p:PublishTrimmed=true -o ./publish
 ```
 
 You can use following runtime identifiers:

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Saritasa.Tools.Domain.Exceptions;
 using Synker.Domain;
 
 namespace Synker.UseCases.Import
@@ -10,7 +11,7 @@ namespace Synker.UseCases.Import
     /// <summary>
     /// Command to import settings from source.
     /// </summary>
-    public class ImportCommand : ICommand<bool>
+    public class ImportCommand : ICommand<ImportResult>
     {
         public bool Force { get; set; }
 
@@ -25,7 +26,7 @@ namespace Synker.UseCases.Import
         }
 
         /// <inheritdoc />
-        public async Task<bool> ExecuteAsync(CancellationToken cancellationToken = default)
+        public async Task<ImportResult> ExecuteAsync(CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -36,7 +37,7 @@ namespace Synker.UseCases.Import
             if (errors.HasErrors)
             {
                 logger.LogInformation($"Import for {profile.Id} skipped because of errors above.");
-                return false;
+                throw new ValidationException(errors);
             }
 
             // Latest local settings date.
@@ -47,23 +48,24 @@ namespace Synker.UseCases.Import
             if (latestBundleInfo == null)
             {
                 logger.LogInformation($"No bundles found for profile {profile.Id}");
-                return false;
+                throw new ValidationException(errors);
             }
 
-            // Check is external settings are newer.
+            // Check if external settings are newer.
             var latestBundle = await bundleFactory.OpenAsync(latestBundleInfo.Id, cancellationToken);
             var latestBundleUpdateDateTime = await profile.GetLatestBundleUpdateDateTimeAsync(latestBundle);
             if (!latestLocalUpdateDateTime.HasValue && !Force)
             {
                 logger.LogInformation("Skip import because cannot get latest local settings update" +
                                       " date and time. Use Force to force import.");
+                return ImportResult.CannotGetLocalSettingsDate;
             }
             if (latestLocalUpdateDateTime >= latestBundleUpdateDateTime && !Force)
             {
                 logger.LogInformation("Skip import because current settings date " +
                                       $"{latestLocalUpdateDateTime} equal or newer than date " +
                                       $"{latestBundleUpdateDateTime} of bundle {latestBundleInfo.Id}.");
-                return false;
+                return ImportResult.SettingsDateNewerThanBundleDate;
             }
             else
             {
@@ -76,7 +78,7 @@ namespace Synker.UseCases.Import
             {
                 foreach (var target in profile.Targets)
                 {
-                    var notSatisfyCondition = await target.GetFirstNonSatisfyConditionAsync();
+                    var notSatisfyCondition = await target.GetFirstNonSatisfyConditionAsync(cancellationToken);
                     if (notSatisfyCondition != null)
                     {
                         logger.LogInformation($"Target \"{target.Id}\" skipped because of condition {notSatisfyCondition.GetType().Name}.");
@@ -92,7 +94,7 @@ namespace Synker.UseCases.Import
                 (latestBundle as IDisposable)?.Dispose();
             }
 
-            return true;
+            return ImportResult.Success;
         }
     }
 }

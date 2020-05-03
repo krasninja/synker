@@ -26,6 +26,11 @@ namespace Synker.Domain
 
         private readonly IDictionary<string, string> data = new Dictionary<string, string>();
 
+        /// <summary>
+        /// The file name which from the config was loaded.
+        /// </summary>
+        public string FileName { get; private set; }
+
         private UserConfiguration()
         {
         }
@@ -91,7 +96,10 @@ namespace Synker.Domain
             using var fileStream = File.Open(file, FileMode.Open, FileAccess.Read, FileShare.None);
             using var sr = new StreamReader(fileStream);
             var data = deserializer.Deserialize<IDictionary<string, string>>(sr.ReadToEnd());
-            return new UserConfiguration(data);
+            return new UserConfiguration(data)
+            {
+                FileName = file
+            };
         }
 
         /// <summary>

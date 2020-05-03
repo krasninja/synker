@@ -1,22 +1,44 @@
 using System;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Synker.Domain;
 
-namespace Synker.App
+namespace Synker.Desktop
 {
     /// <summary>
     /// Profile model with more information.
     /// </summary>
     [Serializable]
-    public class StatusFormProfileModel
+    internal class StatusFormProfileModel : INotifyPropertyChanged
     {
         public string Id => Profile.Id;
 
         public string Name => Profile.Name;
 
+        /// <summary>
+        /// Profile description.
+        /// </summary>
         public string Description => Profile.Description;
 
-        public DateTime? LastLocalUpdate { get; private set; }
+        private DateTime? lastLocalUpdate;
+
+        /// <summary>
+        /// Settings update on local host.
+        /// </summary>
+        public DateTime? LastLocalUpdate
+        {
+            get => lastLocalUpdate;
+            set
+            {
+                lastLocalUpdate = value;
+                OnPropertyChanged(nameof(LastLocalUpdate));
+            }
+        }
+
+        public DateTime? LastExport { get; private set; }
+
+        public DateTime? LastImport { get; private set; }
 
         public Profile Profile { get;}
 
@@ -42,5 +64,16 @@ namespace Synker.App
         {
             LastLocalUpdate = await this.Profile.GetLatestLocalUpdateDateTimeAsync();
         }
+
+        #region INotifyPropertyChanged
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        #endregion
     }
 }

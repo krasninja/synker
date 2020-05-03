@@ -1,34 +1,36 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
-using Eto.Drawing;
-using Eto.Forms;
-using Eto.Serialization.Xaml;
+using System.Threading.Tasks;
+using Eto;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NLog;
 using NLog.Config;
 using NLog.Extensions.Logging;
 using NLog.Targets;
+using Eto.Drawing;
+using Eto.Forms;
+using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 using Synker.Infrastructure.Bundles;
 using Synker.Infrastructure.ProfileLoaders;
 using Synker.Domain;
 using Synker.Infrastructure.Targets;
 using Synker.UseCases.StartMonitor;
-using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
-namespace Synker.App
+namespace Synker.Desktop
 {
     /// <summary>
     /// Main form. It is invisible - only tray icon appears.
     /// </summary>
-    public class MainForm : Form
+    public class MainForm : Form, IDisposable
     {
         private static string appUrl = @"https://github.com/krasninja/settings-synker";
 
         private readonly TrayIndicator trayIndicator = new TrayIndicator();
-        private static readonly Icon icon = Icon.FromResource("Synker.App.Images.Wrench.png");
+        private static readonly Icon icon = Icon.FromResource("Synker.Desktop.Images.Wrench.png");
 
         private IList<Profile> profiles = new List<Profile>();
 
@@ -36,10 +38,47 @@ namespace Synker.App
 
         private DelayActionRunner<Profile> delayActionRunner;
 
+        private readonly CheckCommand exportMonitorCommand = new CheckCommand();
+
+        private readonly CheckCommand importMonitorCommand = new CheckCommand();
+
+        private readonly UserConfiguration configData;
+
         public MainForm()
         {
-            XamlReader.Load(this);
+            configData = UserConfiguration.LoadFromFile();
             InitControls();
+
+            exportMonitorCommand.Executed += (sender, args) =>
+            {
+                if (delayActionRunner == null)
+                {
+                    return;
+                }
+
+                if (exportMonitorCommand.Checked)
+                {
+                    delayActionRunner.Start();
+                }
+                else
+                {
+                    delayActionRunner.Stop();
+                }
+            };
+            importMonitorCommand.Executed += (sender, args) =>
+            {
+                if (bundleFactory is IBundleFactoryWithMonitor bundleFactoryWithMonitor)
+                {
+                    if (importMonitorCommand.Checked)
+                    {
+                        bundleFactoryWithMonitor.StartMonitor();
+                    }
+                    else
+                    {
+                        bundleFactoryWithMonitor.StopMonitor();
+                    }
+                }
+            };
         }
 
         private void InitControls()
@@ -71,6 +110,19 @@ namespace Synker.App
                 Text = "Status"
             });
             trayIndicator.Menu.Items.AddSeparator();
+            trayIndicator.Menu.Items.Add(new CheckMenuItem
+            {
+                Command = exportMonitorCommand,
+                Checked = !configData.DisableImport,
+                Text = "Export Enabled"
+            });
+            trayIndicator.Menu.Items.Add(new CheckMenuItem
+            {
+                Command = importMonitorCommand,
+                Checked = !configData.DisableImport,
+                Text = "Import Enabled"
+            });
+            trayIndicator.Menu.Items.AddSeparator();
             trayIndicator.Menu.Items.Add(new ButtonMenuItem(ShowLogHandler)
             {
                 Text = "Open Log File"
@@ -79,9 +131,13 @@ namespace Synker.App
             {
                 Text = "Open Bundles Directory"
             });
-            trayIndicator.Menu.Items.Add(new ButtonMenuItem(ShowBundlesDirectoryHandler)
+            trayIndicator.Menu.Items.Add(new ButtonMenuItem(ShowProfilesDirectoryHandler)
             {
                 Text = "Open Profiles Directory"
+            });
+            trayIndicator.Menu.Items.Add(new ButtonMenuItem(ShowSettingsFileHandler)
+            {
+                Text = "Open Settings File"
             });
             trayIndicator.Menu.Items.AddSeparator();
             trayIndicator.Menu.Items.Add(new ButtonMenuItem(AboutHandler)
@@ -90,7 +146,8 @@ namespace Synker.App
             });
             trayIndicator.Menu.Items.Add(new ButtonMenuItem(QuitHandler)
             {
-                Text = "Quit"
+                Text = "Quit",
+                Shortcut = Application.Instance.CommonModifier | Keys.Q
             });
         }
 
@@ -104,12 +161,15 @@ namespace Synker.App
 
         private void StatusHandler(object sender, EventArgs args)
         {
-            var viewModel = new StatusFormViewModel(profiles);
+            var viewModel = new StatusFormViewModel(profiles, bundleFactory);
             var form = new StatusForm(viewModel);
 
             void OnRun(object o, EventArgs onRunArgs)
             {
-                viewModel.LoadAsync().GetAwaiter().GetResult();
+                Application.Instance.InvokeAsync(async () =>
+                {
+                    await viewModel.SetLastUpdateDateAsync(viewModel.Profiles);
+                });
             }
             form.LoadComplete += (o, eventArgs) =>
             {
@@ -124,23 +184,45 @@ namespace Synker.App
 
         private void ShowLogHandler(object sender, EventArgs args)
         {
-            var configData = UserConfiguration.LoadFromFile();
             if (!string.IsNullOrEmpty(configData.LogFile))
             {
-                Process.Start(configData.LogFile);
+                Process.Start(new ProcessStartInfo {
+                    FileName = configData.LogFile,
+                    UseShellExecute = true,
+                    Verb = "open"
+                });
             }
         }
 
         private void ShowBundlesDirectoryHandler(object sender, EventArgs args)
         {
-            var configData = UserConfiguration.LoadFromFile();
-            Process.Start(configData.BundlesDirectory);
+            Process.Start(new ProcessStartInfo {
+                FileName = configData.BundlesDirectory,
+                UseShellExecute = true,
+                Verb = "open"
+            });
         }
 
         private void ShowProfilesDirectoryHandler(object sender, EventArgs args)
         {
-            var configData = UserConfiguration.LoadFromFile();
-            Process.Start(configData.ProfilesSource);
+            Process.Start(new ProcessStartInfo {
+                FileName = configData.ProfilesSource,
+                UseShellExecute = true,
+                Verb = "open"
+            });
+        }
+
+        private void ShowSettingsFileHandler(object sender, EventArgs args)
+        {
+            if (!string.IsNullOrEmpty(configData.FileName))
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = configData.FileName,
+                    UseShellExecute = true,
+                    Verb = "open"
+                });
+            }
         }
 
         private void AboutHandler(object sender, EventArgs args)
@@ -163,28 +245,85 @@ namespace Synker.App
 
         private async void OnLoad(object sender, EventArgs args)
         {
-            var configData = UserConfiguration.LoadFromFile();
-
             // Setup logging.
             AppLogger.LoggerFactory = !string.IsNullOrEmpty(configData.LogFile) ?
                 ConfigureFileLogging(configData.LogFile) :
                 ConfigureConsoleLogging();
 
-            // Setup profiles and start monitoring.
+            // Setup profiles.
             var filesProfileLoader = new FilesProfileLoader(configData.ProfilesSource);
             var profileYamlReader = new ProfileYamlReader(filesProfileLoader,
                 ProfileYamlReader.GetProfileElementsTypesFromAssembly(typeof(NullSettingsTarget).Assembly));
             bundleFactory = new ZipBundleFactory(configData.BundlesDirectory);
             profiles = await profileYamlReader.LoadAsync();
+
+            await SetupExportAsync();
+            SetupImport();
+        }
+
+        private async Task SetupExportAsync()
+        {
             var startMonitorCommand = new StartMonitorCommand(profiles, bundleFactory)
             {
                 DisableExport = configData.DisableExport,
                 DisableImport = configData.DisableImport
             };
             delayActionRunner = await startMonitorCommand.ExecuteAsync();
+            delayActionRunner.AfterRun += (o, eventArgs) =>
+            {
+                ShowNotification(eventArgs.Item, "Synker Export");
+            };
+            if (!configData.DisableExport)
+            {
+                delayActionRunner.Start();
+            }
+        }
+
+        private void SetupImport()
+        {
+            if (bundleFactory is IBundleFactoryWithMonitor bundleFactoryWithMonitor)
+            {
+                bundleFactoryWithMonitor.OnSettingsUpdate += (o, s) =>
+                {
+                    var profile = profiles.FirstOrDefault(p => p.Id == s);
+                    ShowNotification(profile, "Synker Import");
+                };
+                if (!configData.DisableImport)
+                {
+                    bundleFactoryWithMonitor.StartMonitor();
+                }
+            }
+        }
+
+        private void ShowNotification(Profile profile, string title)
+        {
+            if (profile == null)
+            {
+                return;
+            }
+            new Notification
+            {
+                Message = "Profile - " + profile.Name,
+                Title = title
+            }.Show(trayIndicator);
         }
 
         #endregion
+
+        #region IDisposable
+
+        /// <inheritdoc />
+        public new void Dispose()
+        {
+            // TODO: Why Widget doesn't support Dispose pattern?
+            ((Widget)this).Dispose();
+            delayActionRunner?.Dispose();
+            (bundleFactory as IDisposable)?.Dispose();
+        }
+
+        #endregion
+
+        #region Logging
 
         private const string NLogLayout =
             @"${date:format=yyyy-MM-dd HH\:mm\:ss} [${level:format=FirstCharacter}] ${logger:shortName=true}: ${message} ${exception}";
@@ -236,5 +375,7 @@ namespace Synker.App
                 .BuildServiceProvider();
             return serviceProvider.GetRequiredService<ILoggerFactory>();
         }
+
+        #endregion
     }
 }

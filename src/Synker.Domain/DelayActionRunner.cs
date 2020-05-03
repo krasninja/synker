@@ -17,12 +17,12 @@ namespace Synker.Domain
         /// <summary>
         /// The event occurs before action run.
         /// </summary>
-        public event EventHandler BeforeRun;
+        public event EventHandler<DelayActionRunnerEventArgs<T>> BeforeRun;
 
         /// <summary>
         /// The event occurs after action run.
         /// </summary>
-        public event EventHandler AfterRun;
+        public event EventHandler<DelayActionRunnerEventArgs<T>> AfterRun;
 
         private readonly ConcurrentDictionary<T, DateTime> updateItems =
             new ConcurrentDictionary<T, DateTime>();
@@ -96,9 +96,9 @@ namespace Synker.Domain
 
                 try
                 {
-                    BeforeRun?.Invoke(this, EventArgs.Empty);
+                    BeforeRun?.Invoke(this, new DelayActionRunnerEventArgs<T>(item.Key));
                     action(item.Key).GetAwaiter().GetResult();
-                    AfterRun?.Invoke(this, EventArgs.Empty);
+                    AfterRun?.Invoke(this, new DelayActionRunnerEventArgs<T>(item.Key));
                 }
                 catch (Exception ex)
                 {
@@ -150,5 +150,15 @@ namespace Synker.Domain
         }
 
         #endregion
+    }
+
+    public class DelayActionRunnerEventArgs<T> : EventArgs
+    {
+        public T Item { get; private set; }
+
+        public DelayActionRunnerEventArgs(T item)
+        {
+            this.Item = item;
+        }
     }
 }

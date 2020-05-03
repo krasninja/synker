@@ -1,5 +1,4 @@
 ﻿using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
 using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Extensions.Logging;
@@ -13,8 +12,7 @@ namespace Synker.Cli
     /// <summary>
     /// Entry point class.
     /// </summary>
-    [Command(Name = "synker-cli", Description = "Applications settings synchronization utility.",
-        ThrowOnUnexpectedArgument = true)]
+    [Command(Name = "synker-cli", Description = "Applications settings synchronization utility.")]
     [VersionOptionFromMember("-v|--version", MemberName = nameof(GetVersion))]
     [Subcommand(
         typeof(Clean),

@@ -17,7 +17,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Synker.Infrastructure.Tests
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Synker.Web", "Synker.Web\Synker.Web.csproj", "{8A4F20C4-D770-465E-A243-AF87609E9E69}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Synker.App", "Synker.App\Synker.App.csproj", "{106B947F-D467-4169-BA1E-9298ED18313D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Synker.Desktop", "Synker.Desktop\Synker.Desktop.csproj", "{106B947F-D467-4169-BA1E-9298ED18313D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Domain", "Domain", "{E1FE98BE-0CE0-4C42-AF37-04407437918F}"
 EndProject
@@ -28,8 +28,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{6EEF6D2B-046C-4539-9AD1-7568EE5CB700}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Synker.UseCases.Common", "Synker.UseCases.Common\Synker.UseCases.Common.csproj", "{503D96D0-A128-402D-B3D2-68CED718EC59}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Synker.Desktop", "Synker.Desktop\Synker.Desktop.csproj", "{76EA0604-88C6-4F8A-B9F6-52C2C350D3C9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -77,10 +75,6 @@ Global
 		{503D96D0-A128-402D-B3D2-68CED718EC59}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{503D96D0-A128-402D-B3D2-68CED718EC59}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{503D96D0-A128-402D-B3D2-68CED718EC59}.Release|Any CPU.Build.0 = Release|Any CPU
-		{76EA0604-88C6-4F8A-B9F6-52C2C350D3C9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{76EA0604-88C6-4F8A-B9F6-52C2C350D3C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{76EA0604-88C6-4F8A-B9F6-52C2C350D3C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{76EA0604-88C6-4F8A-B9F6-52C2C350D3C9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -96,7 +90,6 @@ Global
 		{106B947F-D467-4169-BA1E-9298ED18313D} = {95AA55E7-ACD8-49D2-A51F-B1A8661AD9BA}
 		{9C44804E-F093-45F8-8C1E-55C0D926E70D} = {E1FE98BE-0CE0-4C42-AF37-04407437918F}
 		{503D96D0-A128-402D-B3D2-68CED718EC59} = {E1FE98BE-0CE0-4C42-AF37-04407437918F}
-		{76EA0604-88C6-4F8A-B9F6-52C2C350D3C9} = {95AA55E7-ACD8-49D2-A51F-B1A8661AD9BA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {90999EA9-63A2-4A61-B5F0-F92AA55B0526}

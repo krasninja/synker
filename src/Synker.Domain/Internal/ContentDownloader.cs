@@ -10,12 +10,24 @@ namespace Synker.Domain.Internal
     /// </summary>
     internal class ContentDownloader
     {
+        private static readonly Uri globalSource =
+            new Uri(@"https://raw.githubusercontent.com/krasninja/synker-profiles/master");
+
         public Task<string> LoadAsync(string uri)
         {
             if (uri.StartsWith(@"http://", StringComparison.OrdinalIgnoreCase) ||
                 uri.StartsWith(@"https://", StringComparison.OrdinalIgnoreCase))
             {
                 return LoadHttp(uri);
+            }
+            if (uri.StartsWith(@"global://", StringComparison.OrdinalIgnoreCase))
+            {
+                uri = uri.Substring(9);
+                if (!uri.StartsWith('/'))
+                {
+                    uri = '/' + uri;
+                }
+                return LoadHttp(globalSource + uri);
             }
             // Fallback.
             return LoadLocal(uri);
@@ -25,7 +37,7 @@ namespace Synker.Domain.Internal
         {
             var webRequest = WebRequest.CreateHttp(uri);
             var response = webRequest.GetResponse();
-            using var stream = response.GetResponseStream();
+            await using var stream = response.GetResponseStream();
             using var reader = new StreamReader(stream);
             var content = await reader.ReadToEndAsync();
             response.Close();

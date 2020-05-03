@@ -76,7 +76,7 @@ namespace Synker.Infrastructure.Targets
                 }
 
                 // Export.
-                result.Stream = File.OpenRead(file);
+                result.Stream = File.Open(file, FileMode.Open, FileAccess.Read, FileShare.Read);
                 result.Metadata[Key_Name] = NormalizePath(
                     GetRelativeFilePath(BasePath, file, IsFileSystemCaseInsensitive())
                 );
