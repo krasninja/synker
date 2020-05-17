@@ -30,7 +30,8 @@ namespace Synker.Infrastructure.ProfileLoaders
             {
                 throw new ArgumentException("Value cannot be an empty collection.", nameof(strings));
             }
-            this.streams = strings.Select(s => new MemoryStream(Encoding.UTF8.GetBytes(s))).ToArray();
+            this.streams = strings.Select(s => new MemoryStream(Encoding.UTF8.GetBytes(s)))
+                .Cast<Stream>().ToArray();
         }
 
         public Task<Stream> GetNextAsync()

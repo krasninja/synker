@@ -114,7 +114,7 @@ namespace Synker.Infrastructure.Bundles
             logger.LogInformation("Start watcher.");
             watcher = new FileSystemWatcher(directory);
             watcher.IncludeSubdirectories = true;
-            watcher.NotifyFilter = NotifyFilters.LastWrite;
+            watcher.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.CreationTime | NotifyFilters.FileName;
             watcher.Created += WatcherEvent;
             watcher.Changed += WatcherEvent;
             watcher.EnableRaisingEvents = true;

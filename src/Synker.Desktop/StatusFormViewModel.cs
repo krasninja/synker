@@ -5,7 +5,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using MessageBox = System.Windows.Forms.MessageBox;
 using Eto.Forms;
 using Synker.Desktop.Abstract;
 using Synker.Domain;
@@ -77,7 +76,7 @@ namespace Synker.Desktop
             }
             var result =
                 await new UseCases.Export.ExportCommand(SelectedProfile.Profile, bundleFactory).ExecuteAsync();
-            MessageBox.Show("Export result: " + result);
+            MessageBox.Show("Export result: " + Saritasa.Tools.Common.Utils.EnumUtils.GetDescription(result));
         }
 
         private async void ImportCommandHandler(object sender, EventArgs args)
@@ -88,7 +87,7 @@ namespace Synker.Desktop
             }
             var result =
                 await new UseCases.Import.ImportCommand(SelectedProfile.Profile, bundleFactory).ExecuteAsync();
-            MessageBox.Show("Import result: " + result);
+            MessageBox.Show("Import result: " + Saritasa.Tools.Common.Utils.EnumUtils.GetDescription(result));
         }
 
         private async void RefreshCommandHandler(object sender, EventArgs args) => await LoadAsync();
