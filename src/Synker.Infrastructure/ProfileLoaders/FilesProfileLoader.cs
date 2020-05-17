@@ -30,11 +30,7 @@ namespace Synker.Infrastructure.ProfileLoaders
 
         public FilesProfileLoader(IEnumerable<string> sources)
         {
-            if (sources == null)
-            {
-                throw new ArgumentNullException(nameof(sources));
-            }
-            this.sources = sources;
+            this.sources = sources ?? throw new ArgumentNullException(nameof(sources));
         }
 
         /// <inheritdoc />

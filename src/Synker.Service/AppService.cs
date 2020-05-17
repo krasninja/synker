@@ -65,7 +65,7 @@ namespace Synker.Service
                 ConfigFile);
             if (!File.Exists(configFile))
             {
-                Console.Error.WriteLine($"Cannot find config file ${configFile}.");
+                await Console.Error.WriteLineAsync($"Cannot find config file ${configFile}.");
                 return 1;
             }
             var configData = GetConfigData(configFile);
@@ -77,12 +77,12 @@ namespace Synker.Service
 
             if (!configData.ContainsKey(ProfilesSourceKey))
             {
-                Console.Error.WriteLine($"Cannot find property {ProfilesSourceKey}.");
+                await Console.Error.WriteLineAsync($"Cannot find property {ProfilesSourceKey}.");
                 return 2;
             }
             if (!configData.ContainsKey(BundlesDirectoryKey))
             {
-                Console.Error.WriteLine($"Cannot find property {BundlesDirectoryKey}.");
+                await Console.Error.WriteLineAsync($"Cannot find property {BundlesDirectoryKey}.");
                 return 3;
             }
 

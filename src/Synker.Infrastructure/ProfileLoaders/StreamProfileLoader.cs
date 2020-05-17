@@ -13,7 +13,7 @@ namespace Synker.Infrastructure.ProfileLoaders
     public class StreamProfileLoader : IProfileLoader
     {
         private readonly Stream[] streams;
-        private int currentIndex = 0;
+        private int currentIndex;
 
         public StreamProfileLoader(params Stream[] streams)
         {

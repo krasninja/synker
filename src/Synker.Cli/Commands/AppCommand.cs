@@ -9,8 +9,6 @@ using NLog.Extensions.Logging;
 using NLog.Targets;
 using Saritasa.Tools.Domain.Exceptions;
 using Synker.Domain;
-using Synker.Infrastructure.ProfileLoaders;
-using Synker.Infrastructure.Targets;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace Synker.Cli.Commands

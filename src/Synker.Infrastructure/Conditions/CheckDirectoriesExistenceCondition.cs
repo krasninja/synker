@@ -22,7 +22,7 @@ namespace Synker.Infrastructure.Conditions
         private readonly ILogger<CheckDirectoriesExistenceCondition> logger = AppLogger.Create<CheckDirectoriesExistenceCondition>();
 
         /// <inheritdoc />
-        public override Task<bool> IsSatisfiedAsync(CancellationToken cancellationToken)
+        public override Task<bool> IsSatisfiedAsync(CancellationToken cancellationToken = default)
         {
             foreach (string directory in Directories)
             {

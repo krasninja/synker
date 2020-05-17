@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -80,7 +79,7 @@ namespace Synker.Domain
             {
                 var streamProfiles = LoadFromStream(stream);
                 stream.Close();
-                stream.Dispose();
+                await stream.DisposeAsync();
                 var acceptedStreamProfiles = streamProfiles
                     .Where(p => !MatchAnyWildcardPattern(p.Id, excludePatternsArray));
                 profiles.AddRange(acceptedStreamProfiles);

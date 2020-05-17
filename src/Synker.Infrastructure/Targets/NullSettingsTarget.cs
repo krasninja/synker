@@ -21,13 +21,13 @@ namespace Synker.Infrastructure.Targets
 
         /// <inheritdoc />
         public override Task ImportAsync(IAsyncEnumerable<Setting> settings,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
         {
             return Task.CompletedTask;
         }
 
         /// <inheritdoc />
-        public override Task<DateTime?> GetUpdateDateTimeAsync(CancellationToken cancellationToken)
+        public override Task<DateTime?> GetUpdateDateTimeAsync(CancellationToken cancellationToken = default)
         {
             return Task.FromResult<DateTime?>(DateTime.Now);
         }

@@ -49,11 +49,7 @@ namespace Synker.Desktop
         /// <exception cref="ArgumentNullException">Profile is null.</exception>
         public StatusFormProfileModel(Profile profile)
         {
-            if (profile == null)
-            {
-                throw new ArgumentNullException(nameof(profile));
-            }
-            this.Profile = profile;
+            this.Profile = profile ?? throw new ArgumentNullException(nameof(profile));
         }
 
         /// <summary>

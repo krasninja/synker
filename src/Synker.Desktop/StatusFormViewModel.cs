@@ -52,16 +52,8 @@ namespace Synker.Desktop
         /// <param name="bundleFactory">Bundle factory.</param>
         public StatusFormViewModel(IEnumerable<Profile> profiles, IBundleFactory bundleFactory)
         {
-            if (profiles == null)
-            {
-                throw new ArgumentNullException(nameof(profiles));
-            }
-            if (bundleFactory == null)
-            {
-                throw new ArgumentNullException(nameof(bundleFactory));
-            }
-            this.profiles = profiles;
-            this.bundleFactory = bundleFactory;
+            this.profiles = profiles ?? throw new ArgumentNullException(nameof(profiles));
+            this.bundleFactory = bundleFactory ?? throw new ArgumentNullException(nameof(bundleFactory));
 
             ExportCommand = new Command(ExportCommandHandler);
             ImportCommand = new Command(ImportCommandHandler);

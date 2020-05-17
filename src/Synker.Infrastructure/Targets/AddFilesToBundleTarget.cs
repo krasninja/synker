@@ -183,7 +183,7 @@ namespace Synker.Infrastructure.Targets
         /// <inheritdoc />
         public override async Task ImportAsync(
             IAsyncEnumerable<Setting> settings,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -195,11 +195,11 @@ namespace Synker.Infrastructure.Targets
                 var fileName = Path.Combine(Path.GetFullPath(BasePath), setting.Metadata[Key_Name]);
                 logger.LogInformation("Update file {fileName}.", fileName);
                 var fileDirectory = Path.GetDirectoryName(fileName);
-                if (!Directory.Exists(fileDirectory))
+                if (fileDirectory != null && !Directory.Exists(fileDirectory))
                 {
                     Directory.CreateDirectory(fileDirectory);
                 }
-                using (var file = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+                await using (var file = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite))
                 {
                     file.SetLength(0);
                     StreamUtils.Copy(setting.Stream, file, buffer);
@@ -207,11 +207,11 @@ namespace Synker.Infrastructure.Targets
                 var ticks = long.Parse(setting.Metadata[Key_LastUpdate]);
                 var lastBundleUpdateDate = new DateTime(ticks, DateTimeKind.Utc);
                 File.SetLastWriteTime(fileName, lastBundleUpdateDate.ToLocalTime());
-            };
+            }
         }
 
         /// <inheritdoc />
-        public override Task<DateTime?> GetUpdateDateTimeAsync(CancellationToken cancellationToken)
+        public override Task<DateTime?> GetUpdateDateTimeAsync(CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -334,9 +334,11 @@ namespace Synker.Infrastructure.Targets
             }
             allSyncFiles = new HashSet<string>(GetAllFiles());
             logger.LogInformation("Start files watcher.");
-            watcher = new FileSystemWatcher(BasePath);
-            watcher.IncludeSubdirectories = true;
-            watcher.NotifyFilter = NotifyFilters.LastWrite;
+            watcher = new FileSystemWatcher(BasePath)
+            {
+                IncludeSubdirectories = true,
+                NotifyFilter = NotifyFilters.LastWrite
+            };
             watcher.Created += WatcherEvent;
             watcher.Changed += WatcherEvent;
             watcher.Deleted += WatcherEvent;

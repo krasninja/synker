@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -44,7 +43,7 @@ namespace Synker.Domain
         public IReadOnlyList<Target> Targets => targets.AsReadOnly();
 
         private static readonly ILogger<Profile> logger = AppLogger.Create<Profile>();
-        private int targetIndex = 0;
+        private int targetIndex;
 
         /// <summary>
         /// Add target.

@@ -25,14 +25,7 @@ namespace Synker.UseCases.Common
         /// Create or get cached object.
         /// </summary>
         /// <returns>Object.</returns>
-        public async Task<T> CreateOrGetAsync()
-        {
-            if (cached == null)
-            {
-                cached = await func();
-            }
-            return cached;
-        }
+        public async Task<T> CreateOrGetAsync() => cached ??= await func();
 
         /// <summary>
         /// Execute action on object if it has been created.

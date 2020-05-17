@@ -90,7 +90,7 @@ namespace Synker.Domain.Internal
             yield return new MappingEnd();
         }
 
-        private static YamlNode ReplacePlatformSpecificToNodeAndVerify(YamlNode node, ISet<string> resolvedPlatformTags)
+        private static void ReplacePlatformSpecificToNodeAndVerify(YamlNode node, ISet<string> resolvedPlatformTags)
         {
             if (node is YamlScalarNode scalarNode)
             {
@@ -105,7 +105,6 @@ namespace Synker.Domain.Internal
                     scalarNode.Value = "#" + name;
                 }
             }
-            return node;
         }
     }
 }

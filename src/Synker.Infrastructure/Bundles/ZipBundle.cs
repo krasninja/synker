@@ -62,15 +62,11 @@ namespace Synker.Infrastructure.Bundles
         /// <exception cref="ArgumentNullException"></exception>
         public ZipBundle(ZipFile zipFile, string id)
         {
-            if (zipFile == null)
-            {
-                throw new ArgumentNullException(nameof(zipFile));
-            }
             if (string.IsNullOrEmpty(id))
             {
                 throw new ArgumentNullException(nameof(id));
             }
-            this.zipFile = zipFile;
+            this.zipFile = zipFile ?? throw new ArgumentNullException(nameof(zipFile));
             this.id = id;
         }
 

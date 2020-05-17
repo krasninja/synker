@@ -8,7 +8,7 @@ namespace Synker.Desktop
     /// <summary>
     /// Form shows all profiles and its current status.
     /// </summary>
-    public class StatusForm : Form
+    public sealed class StatusForm : Form
     {
         private readonly EventHandler<EventArgs> loadCompleteEventHandler;
         private readonly GridView profilesGrid = new GridView
@@ -43,7 +43,7 @@ namespace Synker.Desktop
                     DataCell = new TextBoxCell("LastLocalUpdate")
                     {
                         Binding = Binding.Property<StatusFormProfileModel, string>(
-                            p => p.LastLocalUpdate.HasValue ? p.LastLocalUpdate.Value.ToString("g") : String.Empty)
+                            p => p.LastLocalUpdate.HasValue ? p.LastLocalUpdate.Value.ToString("g") : string.Empty)
                     }
                 }
             }
@@ -69,7 +69,7 @@ namespace Synker.Desktop
                             new ButtonMenuItem
                             {
                                 Command = viewModel.RefreshCommand,
-                                Text = "Refresh",
+                                Text = "Refresh"
                             }
                         }
                     }
@@ -109,7 +109,7 @@ namespace Synker.Desktop
                     {
                         Command = viewModel.ImportCommand,
                         Text = "Import"
-                    },
+                    }
                 }
             };
             profilesGrid.MouseUp += (sender, e) =>

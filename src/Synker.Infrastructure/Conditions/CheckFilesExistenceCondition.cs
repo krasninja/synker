@@ -1,8 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -24,7 +22,7 @@ namespace Synker.Infrastructure.Conditions
         private readonly ILogger<CheckFilesExistenceCondition> logger = AppLogger.Create<CheckFilesExistenceCondition>();
 
         /// <inheritdoc />
-        public override Task<bool> IsSatisfiedAsync(CancellationToken cancellationToken)
+        public override Task<bool> IsSatisfiedAsync(CancellationToken cancellationToken = default)
         {
             foreach (string file in Files)
             {

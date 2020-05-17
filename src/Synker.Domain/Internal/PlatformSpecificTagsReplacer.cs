@@ -103,7 +103,7 @@ namespace Synker.Domain.Internal
 
         private static string FormatPlatformTagId(string platform, string tag) => $"{platform}:{tag}";
 
-        private static bool HasFormatPlatformTagId(ISet<string> set, string platform, string tag)
+        private static bool HasFormatPlatformTagId(ICollection<string> set, string platform, string tag)
             => set.Contains(FormatPlatformTagId(platform, tag));
     }
 }

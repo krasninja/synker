@@ -16,7 +16,7 @@ namespace Synker.Domain
         public string Id { get; internal set; }
 
         private readonly List<Condition> conditions = new List<Condition>();
-        private int conditionIndex = 0;
+        private int conditionIndex;
 
         /// <summary>
         /// Conditions to process the target.

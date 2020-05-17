@@ -19,7 +19,7 @@ namespace Synker.Domain
         /// <summary>
         /// Enumerable of empty settings.
         /// </summary>
-        public static readonly IEnumerable<Setting> EmptySettings = new Setting[]
+        public static readonly IEnumerable<Setting> EmptySettings = new[]
         {
             EmptySetting
         };

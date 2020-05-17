@@ -73,7 +73,7 @@ namespace Synker.UseCases.Export
                 );
             try
             {
-                var settingIndex = await ExportTargetsObjects(
+                await ExportTargetsObjects(
                     profile.Targets,
                     lazyBundle,
                     latestLocalUpdateDateTime.Value,
@@ -106,7 +106,7 @@ namespace Synker.UseCases.Export
                 var targetValidationResults = Saritasa.Tools.Domain.ValidationErrors.CreateFromObjectValidation(target);
                 if (targetValidationResults.HasErrors)
                 {
-                    throw new Saritasa.Tools.Domain.Exceptions.ValidationException(targetValidationResults);
+                    throw new ValidationException(targetValidationResults);
                 }
                 var notSatisfyCondition = await target.GetFirstNonSatisfyConditionAsync(cancellationToken);
                 if (notSatisfyCondition != null)
@@ -130,7 +130,7 @@ namespace Synker.UseCases.Export
 
                     await (await lazyBundle.CreateOrGetAsync()).PutSettingAsync(setting, target.Id, cancellationToken);
                     settingIndex++;
-                };
+                }
 
                 if (settingIndex > 0)
                 {
