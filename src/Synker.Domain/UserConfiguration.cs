@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Saritasa.Tools.Common.Extensions;
 using Saritasa.Tools.Common.Utils;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -72,6 +73,24 @@ namespace Synker.Domain
         }
 
         /// <summary>
+        /// Apply default values based on provided user options.
+        /// </summary>
+        public void ApplyDefaults()
+        {
+            // By default have bundles in config file's directory.
+            if (string.IsNullOrEmpty(data.GetValueOrDefault(BundlesDirectoryKey, string.Empty)) &&
+                !string.IsNullOrEmpty(FileName))
+            {
+                data[BundlesDirectoryKey] = Path.GetDirectoryName(FileName);
+            }
+            if (string.IsNullOrEmpty(data.GetValueOrDefault(BundlesDirectoryKey, string.Empty)) &&
+                !string.IsNullOrEmpty(data.GetValueOrDefault(ProfilesSourceKey, string.Empty)))
+            {
+                data[BundlesDirectoryKey] = Path.GetDirectoryName(ProfilesSource);
+            }
+        }
+
+        /// <summary>
         /// Read and return user configuration as key-value map.
         /// </summary>
         /// <param name="configFile">Config file or default one.</param>
@@ -93,7 +112,7 @@ namespace Synker.Domain
 
         private static UserConfiguration GetConfigData(string file)
         {
-            using var fileStream = File.Open(file, FileMode.Open, FileAccess.Read, FileShare.None);
+            using var fileStream = File.Open(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
             using var sr = new StreamReader(fileStream);
             var data = deserializer.Deserialize<IDictionary<string, string>>(sr.ReadToEnd());
             return new UserConfiguration(data)

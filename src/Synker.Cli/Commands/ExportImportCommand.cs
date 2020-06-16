@@ -27,21 +27,28 @@ namespace Synker.Cli.Commands
 
         protected UserConfiguration GetUserConfiguration()
         {
+            UserConfiguration userConfiguration = null;
             if (!Profiles.Any() && string.IsNullOrEmpty(Bundles))
             {
-                return UserConfiguration.LoadFromFile(Config);
+                userConfiguration = UserConfiguration.LoadFromFile(Config);
             }
 
-            if (Profiles.Any() && !string.IsNullOrWhiteSpace(Bundles))
+            if (Profiles.Any())
             {
-                return UserConfiguration.CreateEmpty(dict =>
+                userConfiguration = UserConfiguration.CreateEmpty(dict =>
                 {
                     dict[UserConfiguration.ProfilesSourceKey] = string.Join(';', Profiles);
                     dict[UserConfiguration.BundlesDirectoryKey] = Bundles;
                 });
             }
 
-            throw new DomainException("Invalid configuration.");
+            if (userConfiguration == null)
+            {
+                throw new DomainException("Invalid configuration.");
+            }
+
+            userConfiguration.ApplyDefaults();
+            return userConfiguration;
         }
 
         protected async Task<IList<Profile>> GetProfilesAsync(UserConfiguration config)
