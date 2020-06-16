@@ -10,6 +10,9 @@ namespace Synker.UseCases.Export
         Success,
 
         [Description("The application settings are older than last found bundle's")]
-        SettingsDateOlderThanBundleDate
+        SettingsDateOlderThanBundleDate,
+
+        [Description("Cannot get local settings date, probably application is not installed.")]
+        CannotGetLocalSettingsDate
     }
 }

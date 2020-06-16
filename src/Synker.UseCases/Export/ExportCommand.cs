@@ -46,7 +46,7 @@ namespace Synker.UseCases.Export
             if (!latestLocalUpdateDateTime.HasValue)
             {
                 logger.LogWarning($"Cannot get latest local settings update date for profile {profile.Id}, skipping.");
-                throw new ValidationException(errors);
+                return ExportResult.CannotGetLocalSettingsDate;
             }
 
             // We allow export only if local settings date is higher than bundle date.
