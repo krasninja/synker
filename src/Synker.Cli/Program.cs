@@ -54,6 +54,6 @@ namespace Synker.Cli
 
         private static string GetVersion()
             => typeof(Program).Assembly
-                .GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
+                .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
     }
 }
