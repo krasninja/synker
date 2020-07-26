@@ -11,9 +11,6 @@ namespace Synker.Cli.Commands
     [Command(Name = "import", Description = "Import settings to local applications")]
     internal class Import : ExportImportCommand
     {
-        [Option("-f|--force", "Force import.", CommandOptionType.NoValue)]
-        public bool Force { get; set; }
-
         /// <inheritdoc />
         protected override async Task<int> OnExecuteAsync(CommandLineApplication app, IConsole console)
         {

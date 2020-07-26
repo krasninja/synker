@@ -86,6 +86,9 @@ namespace Synker.Domain
             if (string.IsNullOrEmpty(data.GetValueOrDefault(BundlesDirectoryKey, string.Empty)) &&
                 !string.IsNullOrEmpty(data.GetValueOrDefault(ProfilesSourceKey, string.Empty)))
             {
+                data[BundlesDirectoryKey] =
+                    ProfilesSource.EndsWith(Path.PathSeparator) || ProfilesSource.EndsWith(Path.AltDirectorySeparatorChar) ?
+                        ProfilesSource : Path.GetDirectoryName(ProfilesSource);
                 data[BundlesDirectoryKey] = Path.GetDirectoryName(ProfilesSource);
             }
         }

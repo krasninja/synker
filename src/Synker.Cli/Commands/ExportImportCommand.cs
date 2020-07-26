@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using McMaster.Extensions.CommandLineUtils;
@@ -11,19 +13,22 @@ namespace Synker.Cli.Commands
 {
     internal class ExportImportCommand : AppCommand
     {
-        [Option("-p|--profiles", "Application profiles directories.", CommandOptionType.MultipleValue)]
-        public IReadOnlyList<string> Profiles { get; set; } = new string[] {};
+        [Option("-p|--profiles", "Application profiles directories or YAML file.", CommandOptionType.MultipleValue)]
+        public IReadOnlyCollection<string> Profiles { get; set; } = new string[] {};
 
         [Option("-b|--bundles", "Directory with settings bundles.",
             CommandOptionType.SingleValue)]
         public string Bundles { get; set; } = string.Empty;
 
-        [Option("-pe|--profiles-exclude", "Application profiles to exclude.",
+        [Option("-op|--only-profiles", "Restrict command to only specified profiles names.",
             CommandOptionType.MultipleValue)]
-        public IReadOnlyList<string> ProfilesExclude { get; set; } = new string[] {};
+        public IReadOnlyCollection<string> OnlyProfiles { get; set; } = new string[] {};
 
         [Option("-c|--config", "Configuration file.", CommandOptionType.SingleValue)]
         public string Config { get; set; }
+
+        [Option("-f|--force", "Force export or import.", CommandOptionType.NoValue)]
+        public bool Force { get; set; } = false;
 
         protected UserConfiguration GetUserConfiguration()
         {
@@ -56,7 +61,17 @@ namespace Synker.Cli.Commands
             var filesProfileLoader = new FilesProfileLoader(config.ProfilesSource);
             var profileYamlReader = new ProfileYamlReader(filesProfileLoader,
                 ProfileYamlReader.GetProfileElementsTypesFromAssembly(typeof(NullSettingsTarget).Assembly));
-            return await profileYamlReader.LoadAsync();
+            var profiles = await profileYamlReader.LoadAsync();
+            if (OnlyProfiles.Any())
+            {
+                var notFoundProfiles = OnlyProfiles.Where(op => !profiles.Select(p => p.Id).Contains(op)).ToArray();
+                if (notFoundProfiles.Any())
+                {
+                    throw new DomainException($"Cannot find profile(-s) {string.Join(", ", notFoundProfiles)}.");
+                }
+                profiles = profiles.Where(p => OnlyProfiles.Contains(p.Id)).ToList();
+            }
+            return profiles;
         }
     }
 }

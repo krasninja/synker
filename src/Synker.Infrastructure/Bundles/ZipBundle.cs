@@ -50,7 +50,7 @@ namespace Synker.Infrastructure.Bundles
             }
             this.id = $"{profileId}@{lastUpdateDate.ToUniversalTime().ToString(CreationTimeFormat)}";
             this.zipOutputStream = new ZipOutputStream(new FileStream(Path.Combine(directory, $"{id}.zip"),
-                FileMode.CreateNew, FileAccess.Write));
+                FileMode.OpenOrCreate, FileAccess.ReadWrite));
             this.zipOutputStream.SetLevel(Deflater.BEST_COMPRESSION);
         }
 

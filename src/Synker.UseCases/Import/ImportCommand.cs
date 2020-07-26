@@ -47,7 +47,7 @@ namespace Synker.UseCases.Import
             if (latestBundleInfo == null)
             {
                 logger.LogInformation($"No bundles found for profile {profile.Id}");
-                throw new ValidationException(errors);
+                return ImportResult.SettingsDateNewerThanBundleDate;
             }
 
             // Check if external settings are newer.
@@ -61,7 +61,7 @@ namespace Synker.UseCases.Import
             }
             if (latestLocalUpdateDateTime >= latestBundleUpdateDateTime && !Force)
             {
-                logger.LogInformation("Skip import because current settings date " +
+                logger.LogInformation("Skip import because local settings date " +
                                       $"{latestLocalUpdateDateTime} equal or newer than date " +
                                       $"{latestBundleUpdateDateTime} of bundle {latestBundleInfo.Id}.");
                 return ImportResult.SettingsDateNewerThanBundleDate;

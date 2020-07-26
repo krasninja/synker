@@ -181,5 +181,8 @@ namespace Synker.Domain
         }
 
         #endregion
+
+        /// <inheritdoc />
+        public override string ToString() => $"{Id} ({string.Join(", ", targets.Select(t => t.Id))})";
     }
 }
