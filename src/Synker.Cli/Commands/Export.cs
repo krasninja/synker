@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using McMaster.Extensions.CommandLineUtils;
 using Synker.Infrastructure.Bundles;
@@ -24,7 +25,14 @@ namespace Synker.Cli.Commands
                 {
                     Force = Force
                 };
-                await command.ExecuteAsync();
+                try
+                {
+                    await command.ExecuteAsync();
+                }
+                catch (Exception ex)
+                {
+                    await console.Error.WriteLineAsync(ex.Message);
+                }
             }
             return 0;
         }

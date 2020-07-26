@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using McMaster.Extensions.CommandLineUtils;
 using Synker.Infrastructure.Bundles;
@@ -20,10 +21,17 @@ namespace Synker.Cli.Commands
             var bundleFactory = new ZipBundleFactory(config.BundlesDirectory);
             foreach (var profile in profiles)
             {
-                await new ImportCommand(profile, bundleFactory)
+                try
                 {
-                    Force = Force
-                }.ExecuteAsync();
+                    await new ImportCommand(profile, bundleFactory)
+                    {
+                        Force = Force
+                    }.ExecuteAsync();
+                }
+                catch (Exception ex)
+                {
+                    await console.Error.WriteLineAsync(ex.Message);
+                }
             }
             return 0;
         }
