@@ -28,7 +28,8 @@ namespace Synker.Cli.Commands
             var logger = AppLogger.Create<Program>();
             logger.LogTrace($"Application startup at {DateTime.Now:yyyy-MM-dd}.");
 
-            ValidationException.MessageFormatter = ValidationExceptionDelegates.GroupErrorsOrDefaultMessageFormatter;
+            ValidationException.MessageFormatter =
+                Saritasa.Tools.Domain.ValidationErrorsFormatter.GroupErrorsOrDefaultMessageFormatter;
             return Task.FromResult(0);
         }
 
