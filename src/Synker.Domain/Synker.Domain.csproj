@@ -7,13 +7,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="1.1.1" />
-      <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.6" />
-      <PackageReference Include="Saritasa.Tools.Common" Version="3.2.2" />
-      <PackageReference Include="Saritasa.Tools.Domain" Version="0.8.0" />
-      <PackageReference Include="System.ComponentModel.Annotations" Version="4.7.0" />
-      <PackageReference Include="System.Linq.Async" Version="4.1.1" />
-      <PackageReference Include="YamlDotNet" Version="8.1.2" />
+      <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="5.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="5.0.0" />
+      <PackageReference Include="Saritasa.Tools.Common" Version="3.3.1" />
+      <PackageReference Include="Saritasa.Tools.Domain" Version="0.8.2" />
+      <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+      <PackageReference Include="System.Linq.Async" Version="5.0.0" />
+      <PackageReference Include="YamlDotNet" Version="9.1.4" />
     </ItemGroup>
 
 </Project>

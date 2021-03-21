@@ -4,7 +4,7 @@ Project Setup
 Here are steps you need to do to setup environment to be able to develop. You need following software installed:
 
 - Visual Studio 2019 (https://www.visualstudio.com/downloads/download-visual-studio-vs.aspx) or JetBrains Rider (https://www.jetbrains.com/rider/)
-- .NET Core 3.1 (https://www.microsoft.com/net/core)
+- .NET 5 (https://www.microsoft.com/net/core)
 
 Code Style Setup
 ----------------

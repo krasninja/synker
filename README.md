@@ -1,6 +1,8 @@
 Synker
 ======
 
+**The project is not under development**
+
 The project goal is to synchronize your applications settings across your computers. For example, you may have the same applications (FileZilla, Far, etc) installed at your home and work. It is not convenient to remember what settings you have at work and do the same at home again and again. The project allows you to export settings into shared folder and import them automatically into another environment.
 
 ## Terms
